@@ -1,0 +1,14 @@
+D:\Dane\Projekty\NaukaCSharp\Magazyn\bin\Debug\net10.0\Magazyn.exe
+D:\Dane\Projekty\NaukaCSharp\Magazyn\bin\Debug\net10.0\Magazyn.deps.json
+D:\Dane\Projekty\NaukaCSharp\Magazyn\bin\Debug\net10.0\Magazyn.runtimeconfig.json
+D:\Dane\Projekty\NaukaCSharp\Magazyn\bin\Debug\net10.0\Magazyn.dll
+D:\Dane\Projekty\NaukaCSharp\Magazyn\bin\Debug\net10.0\Magazyn.pdb
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\Magazyn.GeneratedMSBuildEditorConfig.editorconfig
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\Magazyn.AssemblyInfoInputs.cache
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\Magazyn.AssemblyInfo.cs
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\Magazyn.csproj.CoreCompileInputs.cache
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\Magazyn.dll
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\refint\Magazyn.dll
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\Magazyn.pdb
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\Magazyn.genruntimeconfig.cache
+D:\Dane\Projekty\NaukaCSharp\Magazyn\obj\Debug\net10.0\ref\Magazyn.dll
