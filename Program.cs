@@ -7,6 +7,7 @@ while (true)
     Console.WriteLine("1 - Dodaj przedmiot");
     Console.WriteLine("2 - Wyświetl wszystkie");
     Console.WriteLine("3 - Wyjście");
+    Console.WriteLine("4 - Edytuj przedmiot");
     string wybor = Console.ReadLine() ?? "";
 
     if (wybor == "1")
@@ -16,11 +17,21 @@ while (true)
 
         Console.WriteLine("Podaj ilość");
         string iloscTekst = Console.ReadLine() ?? "";
-        int ilosc = int.Parse(iloscTekst);
+        int ilosc;
+        while (!int.TryParse(iloscTekst, out ilosc) || ilosc <= 0)
+        {
+            Console.WriteLine("❌ Nieprawidłowa liczba! podaj ilość jeszcze raz:");
+            iloscTekst = Console.ReadLine () ?? "";
+        }
 
         Console.WriteLine("Podaj cenę za sztukę");
         string cenaTekst = Console.ReadLine() ?? "";
-        decimal cena = decimal.Parse(cenaTekst);
+        decimal cena;
+        while (!decimal.TryParse(cenaTekst, out cena) || cena <= 0)
+        {
+            Console.WriteLine("❌ Nieprawidłowa liczba! podaj cenę jeszcze raz:");
+            cenaTekst = Console.ReadLine () ?? "";
+        }
         magazyn.Add(new Item(nazwa,ilosc,cena));
     }
     else if (wybor == "2")
@@ -39,6 +50,21 @@ while (true)
     else if (wybor == "3")
     {
         break;
+    }
+    else if (wybor == "4")
+    {
+        if (magazyn.Count == 0)
+        {
+            Console.WriteLine("📭 Magazyn jest pusty, nie ma czego edytować.");
+        }
+        else
+        {
+            Console.WriteLine($"=== Wybierz przedmiot do edycji ===");
+            for (int i = 0; i < magazyn.Count; i++)
+            {
+                Console.WriteLine($"{i + 1} -{magazyn[i].Name} | {magazyn[i].Quantity} szt. |{magazyn[i].Price} zł");
+            }
+        }
     }
     else
     {
