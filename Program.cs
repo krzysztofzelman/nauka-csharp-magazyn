@@ -64,6 +64,18 @@ while (true)
             {
                 Console.WriteLine($"{i + 1} -{magazyn[i].Name} | {magazyn[i].Quantity} szt. |{magazyn[i].Price} zł");
             }
+            Console.WriteLine("Wybierz numer przedmiotu do edycji: ");
+            string wyborEdycji = Console.ReadLine () ?? "";
+            int indeks;
+            if (!int.TryParse(wyborEdycji, out indeks) || indeks < 1|| indeks > magazyn.Count)
+            {
+                Console.WriteLine("❌ Nieprawidłowy numer!");
+            }
+            else
+            {
+                indeks --; 
+                 Item edytowany = magazyn[indeks];
+            }
         }
     }
     else
