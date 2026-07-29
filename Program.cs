@@ -72,9 +72,16 @@ while (true)
                 Console.WriteLine("❌ Nieprawidłowy numer!");
             }
             else
+
             {
-                indeks --; 
+                indeks --;
                  Item edytowany = magazyn[indeks];
+                Console.WriteLine($"Podaj nową nazwę (Enter = zostaw {edytowany.Name}):");
+                string nowaNazwa = Console.ReadLine() ?? "";
+                if (nowaNazwa != "")
+                {
+                    edytowany.Name = nowaNazwa;
+                }
             }
         }
     }
