@@ -95,6 +95,19 @@ while (true)
                     }
                     edytowany.Quantity = nowaIlosc;
                 }
+
+                Console.WriteLine($"Podaj nową cenę (Enter = zostaw {edytowany.Price}):");
+                string nowaCenaTekst = Console.ReadLine() ?? "";
+                if (nowaCenaTekst != "")
+                {
+                    decimal nowaCena;
+                    while (!decimal.TryParse(nowaCenaTekst, out nowaCena) || nowaCena <= 0)
+                    {
+                        Console.WriteLine("❌ Nieprawidłowa liczba! Podaj cenę jeszcze raz:");
+                        nowaCenaTekst = Console.ReadLine() ?? "";
+                    }
+                    edytowany.Price = nowaCena;
+                }
             }
         }
     }
