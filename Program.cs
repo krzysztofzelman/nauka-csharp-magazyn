@@ -6,8 +6,8 @@ while (true)
     Console.WriteLine("Wybierz opcje:");
     Console.WriteLine("1 - Dodaj przedmiot");
     Console.WriteLine("2 - Wyświetl wszystkie");
-    Console.WriteLine("3 - Wyjście");
-    Console.WriteLine("4 - Edytuj przedmiot");
+    Console.WriteLine("3 - Edytuj przedmiot");
+    Console.WriteLine("4 - Wyjście");
     string wybor = Console.ReadLine() ?? "";
 
     if (wybor == "1")
@@ -47,11 +47,11 @@ while (true)
                 Console.WriteLine($"-{przedmiot.Name} | {przedmiot.Quantity} szt. | {przedmiot.Price} zł");
             }
         }
-    else if (wybor == "3")
+    else if (wybor == "4")
     {
         break;
     }
-    else if (wybor == "4")
+    else if (wybor == "3")
     {
         if (magazyn.Count == 0)
         {
@@ -81,6 +81,19 @@ while (true)
                 if (nowaNazwa != "")
                 {
                     edytowany.Name = nowaNazwa;
+                }
+
+                Console.WriteLine($"Podaj nową ilość (Enter = zostaw {edytowany.Quantity}):");
+                string nowaIloscTekst = Console.ReadLine() ?? "";
+                if (nowaIloscTekst != "")
+                {
+                    int nowaIlosc;
+                    while (!int.TryParse(nowaIloscTekst, out nowaIlosc) || nowaIlosc <= 0)
+                    {
+                        Console.WriteLine("❌ Nieprawidłowa liczba! Podaj ilość jeszcze raz:");
+                        nowaIloscTekst = Console.ReadLine() ?? "";
+                    }
+                    edytowany.Quantity = nowaIlosc;
                 }
             }
         }
