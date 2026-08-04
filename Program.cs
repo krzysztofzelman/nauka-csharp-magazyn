@@ -7,7 +7,8 @@ while (true)
     Console.WriteLine("1 - Dodaj przedmiot");
     Console.WriteLine("2 - Wyświetl wszystkie");
     Console.WriteLine("3 - Edytuj przedmiot");
-    Console.WriteLine("4 - Wyjście");
+    Console.WriteLine("4 - Usuń przedmiot");
+    Console.WriteLine("5 - Wyjście");
     string wybor = Console.ReadLine() ?? "";
 
     if (wybor == "1")
@@ -47,7 +48,7 @@ while (true)
                 Console.WriteLine($"-{przedmiot.Name} | {przedmiot.Quantity} szt. | {przedmiot.Price} zł");
             }
         }
-    else if (wybor == "4")
+    else if (wybor == "5")
     {
         break;
     }
@@ -111,6 +112,36 @@ while (true)
             }
         }
     }
+    else if (wybor == "4")
+    {
+        if (magazyn.Count == 0)
+        {
+            Console.WriteLine("📭 Magazyn jest pusty, nie ma czego usuwać.");
+        }
+        else
+        {
+            Console.WriteLine($"=== Wybierz przedmiot do usunięcia ===");
+            for (int i = 0; i < magazyn.Count; i++)
+            {
+                Console.WriteLine($"{i + 1} -{magazyn[i].Name} | {magazyn[i].Quantity} szt. |{magazyn[i].Price} zł");
+            }
+            Console.WriteLine("Wybierz numer przedmiotu do usunięcia: ");
+            string wyborUsuniecia = Console.ReadLine() ?? "";
+            int indeks;
+            if (!int.TryParse(wyborUsuniecia, out indeks) || indeks < 1 || indeks > magazyn.Count)
+            {
+                Console.WriteLine("❌ Nieprawidłowy numer!");
+            }
+            else
+            {
+                indeks--;
+                Item usuwany = magazyn[indeks];
+                magazyn.RemoveAt(indeks);
+                Console.WriteLine($"✅ Usunięto przedmiot: {usuwany.Name}");
+            }
+        }
+    }
+
     else
     {
         Console.WriteLine("❌ Nie ma takiej opcji!");
