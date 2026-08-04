@@ -77,14 +77,34 @@ while (true)
             {
                 indeks --;
                  Item edytowany = magazyn[indeks];
-                Console.WriteLine($"Podaj nową nazwę (Enter = zostaw {edytowany.Name}):");
-                string nowaNazwa = Console.ReadLine() ?? "";
+                Console.WriteLine($"Podaj nową nazwę (popraw i wciśnij Enter):");
+                Console.Write(edytowany.Name);
+                String nowaNazwa = edytowany.Name;
+                while (true)
+                {
+                    ConsoleKeyInfo klawisz = Console.ReadKey(true);
+                    if (klawisz.Key == ConsoleKey.Enter)
+                    {
+                        break;
+                    }
+                    else if (klawisz.Key == ConsoleKey.Backspace && nowaNazwa.Length > 0)
+                    {
+                        nowaNazwa = nowaNazwa.Substring(0, nowaNazwa.Length - 1);
+                        Console.Write("\b \b");
+                    }
+                    else if (klawisz.KeyChar != '\0')
+                    {
+                        nowaNazwa += klawisz.KeyChar;
+                        Console.Write(klawisz.KeyChar);
+                    }
+                }
+                Console.WriteLine();
                 if (nowaNazwa != "")
                 {
                     edytowany.Name = nowaNazwa;
                 }
 
-                Console.WriteLine($"Podaj nową ilość (Enter = zostaw {edytowany.Quantity}):");
+                Console.WriteLine("Podaj nową ilość (Enter = zostaw {edytowany.Quantity}):");
                 string nowaIloscTekst = Console.ReadLine() ?? "";
                 if (nowaIloscTekst != "")
                 {
