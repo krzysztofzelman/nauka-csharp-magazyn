@@ -1,7 +1,7 @@
 ﻿List<Item> magazyn = new List<Item>();
+
 while (true)
 {
-
     Console.WriteLine("📦 Witaj w systemie magazynowym!");
     Console.WriteLine("Wybierz opcje:");
     Console.WriteLine("1 - Dodaj przedmiot");
@@ -14,7 +14,7 @@ while (true)
     if (wybor == "1")
     {
         Console.WriteLine("Podaj nazwę przedmiotu:)");
-        String nazwa = Console.ReadLine() ?? "";
+        string nazwa = Console.ReadLine() ?? "";
 
         Console.WriteLine("Podaj ilość");
         string iloscTekst = Console.ReadLine() ?? "";
@@ -22,7 +22,7 @@ while (true)
         while (!int.TryParse(iloscTekst, out ilosc) || ilosc <= 0)
         {
             Console.WriteLine("❌ Nieprawidłowa liczba! podaj ilość jeszcze raz:");
-            iloscTekst = Console.ReadLine () ?? "";
+            iloscTekst = Console.ReadLine() ?? "";
         }
 
         Console.WriteLine("Podaj cenę za sztukę");
@@ -31,11 +31,12 @@ while (true)
         while (!decimal.TryParse(cenaTekst, out cena) || cena <= 0)
         {
             Console.WriteLine("❌ Nieprawidłowa liczba! podaj cenę jeszcze raz:");
-            cenaTekst = Console.ReadLine () ?? "";
+            cenaTekst = Console.ReadLine() ?? "";
         }
-        magazyn.Add(new Item(nazwa,ilosc,cena));
+        magazyn.Add(new Item(nazwa, ilosc, cena));
     }
     else if (wybor == "2")
+    {
         if (magazyn.Count == 0)
         {
             Console.WriteLine("📭 Magazyn jest pusty.");
@@ -48,9 +49,6 @@ while (true)
                 Console.WriteLine($"-{przedmiot.Name} | {przedmiot.Quantity} szt. | {przedmiot.Price} zł");
             }
         }
-    else if (wybor == "5")
-    {
-        break;
     }
     else if (wybor == "3")
     {
@@ -60,26 +58,22 @@ while (true)
         }
         else
         {
-            Console.WriteLine($"=== Wybierz przedmiot do edycji ===");
-            for (int i = 0; i < magazyn.Count; i++)
-            {
-                Console.WriteLine($"{i + 1} -{magazyn[i].Name} | {magazyn[i].Quantity} szt. |{magazyn[i].Price} zł");
-            }
+            Console.WriteLine("=== Wybierz przedmiot do edycji ===");
+            WyswietlListe(magazyn);
             Console.WriteLine("Wybierz numer przedmiotu do edycji: ");
-            string wyborEdycji = Console.ReadLine () ?? "";
+            string wyborEdycji = Console.ReadLine() ?? "";
             int indeks;
-            if (!int.TryParse(wyborEdycji, out indeks) || indeks < 1|| indeks > magazyn.Count)
+            if (!int.TryParse(wyborEdycji, out indeks) || indeks < 1 || indeks > magazyn.Count)
             {
                 Console.WriteLine("❌ Nieprawidłowy numer!");
             }
             else
-
             {
-                indeks --;
-                 Item edytowany = magazyn[indeks];
-                Console.WriteLine($"Podaj nową nazwę (popraw i wciśnij Enter):");
+                indeks--;
+                Item edytowany = magazyn[indeks];
+                Console.WriteLine("Podaj nową nazwę (popraw i wciśnij Enter):");
                 Console.Write(edytowany.Name);
-                String nowaNazwa = edytowany.Name;
+                string nowaNazwa = edytowany.Name;
                 while (true)
                 {
                     ConsoleKeyInfo klawisz = Console.ReadKey(true);
@@ -104,7 +98,7 @@ while (true)
                     edytowany.Name = nowaNazwa;
                 }
 
-                Console.WriteLine("Podaj nową ilość (Enter = zostaw {edytowany.Quantity}):");
+                Console.WriteLine($"Podaj nową ilość (Enter = zostaw {edytowany.Quantity}):");
                 string nowaIloscTekst = Console.ReadLine() ?? "";
                 if (nowaIloscTekst != "")
                 {
@@ -140,11 +134,8 @@ while (true)
         }
         else
         {
-            Console.WriteLine($"=== Wybierz przedmiot do usunięcia ===");
-            for (int i = 0; i < magazyn.Count; i++)
-            {
-                Console.WriteLine($"{i + 1} -{magazyn[i].Name} | {magazyn[i].Quantity} szt. |{magazyn[i].Price} zł");
-            }
+            Console.WriteLine("=== Wybierz przedmiot do usunięcia ===");
+            WyswietlListe(magazyn);
             Console.WriteLine("Wybierz numer przedmiotu do usunięcia: ");
             string wyborUsuniecia = Console.ReadLine() ?? "";
             int indeks;
@@ -161,10 +152,20 @@ while (true)
             }
         }
     }
-
+    else if (wybor == "5")
+    {
+        break;
+    }
     else
     {
         Console.WriteLine("❌ Nie ma takiej opcji!");
     }
+}
 
+void WyswietlListe(List<Item> lista)
+{
+    for (int i = 0; i < lista.Count; i++)
+    {
+        Console.WriteLine($"{i + 1} - {lista[i].Name} | {lista[i].Quantity} szt. | {lista[i].Price} zł");
+    }
 }
