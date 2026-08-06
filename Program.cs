@@ -59,7 +59,7 @@ while (true)
         else
         {
             Console.WriteLine("=== Wybierz przedmiot do edycji ===");
-            WyswietlListe(magazyn);
+            Funkcje.WyswietlListe(magazyn);
             Console.WriteLine("Wybierz numer przedmiotu do edycji: ");
             string wyborEdycji = Console.ReadLine() ?? "";
             int indeks;
@@ -135,7 +135,7 @@ while (true)
         else
         {
             Console.WriteLine("=== Wybierz przedmiot do usunięcia ===");
-            WyswietlListe(magazyn);
+            Funkcje.WyswietlListe(magazyn);
             Console.WriteLine("Wybierz numer przedmiotu do usunięcia: ");
             string wyborUsuniecia = Console.ReadLine() ?? "";
             int indeks;
@@ -159,13 +159,5 @@ while (true)
     else
     {
         Console.WriteLine("❌ Nie ma takiej opcji!");
-    }
-}
-
-void WyswietlListe(List<Item> lista)
-{
-    for (int i = 0; i < lista.Count; i++)
-    {
-        Console.WriteLine($"{i + 1} - {lista[i].Name} | {lista[i].Quantity} szt. | {lista[i].Price} zł");
     }
 }
