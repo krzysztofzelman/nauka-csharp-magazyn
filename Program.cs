@@ -8,7 +8,8 @@ while (true)
     Console.WriteLine("2 - Wyświetl wszystkie");
     Console.WriteLine("3 - Edytuj przedmiot");
     Console.WriteLine("4 - Usuń przedmiot");
-    Console.WriteLine("5 - Wyjście");
+    Console.WriteLine("5 - Wartość magazynu");
+    Console.WriteLine("6 - Wyjście");
     string wybor = Console.ReadLine() ?? "";
 
     if (wybor == "1")
@@ -152,7 +153,13 @@ while (true)
             }
         }
     }
+
     else if (wybor == "5")
+    {
+        decimal wartosc = Funkcje.WartoscMagazynu(magazyn);
+        Console.WriteLine($"💰 Wartość magazynu: {wartosc} zł");
+    }
+    else if (wybor == "6")
     {
         break;
     }
