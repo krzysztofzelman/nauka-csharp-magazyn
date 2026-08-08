@@ -67,16 +67,22 @@ while (true)
     }
     else if (wybor == "2")      // Wyświetlanie wszystkich przedmiotów
     {
-        if (magazyn.Count == 0)
+       using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
-            Console.WriteLine("📭 Magazyn jest pusty.");
-        }
-        else
-        {
-            Console.WriteLine("=== Zawartość magazynu ===");
-            foreach (Item przedmiot in magazyn)
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT Nazwa, Ilosc, Cena FROM Przedmioty";
+            SqliteDataReader reader = command.ExecuteReader();
+            Console.WriteLine("==== Zawartość magazynu ====");
+            bool pokazanoCos = false;
+            while (reader.Read())
             {
-                Console.WriteLine($"-{przedmiot.Name} | {przedmiot.Quantity} szt. | {przedmiot.Price} zł");
+                pokazanoCos = true;
+                Console.WriteLine($"- {reader["Nazwa"]} | Ilość: {reader["Ilosc"]} | Cena: {reader["Cena"]} zł");
+            }
+            if (!pokazanoCos)
+            {
+                Console.WriteLine("📭 Magazyn jest pusty.");
             }
         }
     }
