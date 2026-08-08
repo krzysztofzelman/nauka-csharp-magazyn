@@ -1,4 +1,22 @@
-﻿List<Item> magazyn = new List<Item>();
+﻿using System.Runtime.InteropServices;
+using Microsoft.Data.Sqlite;
+
+string connectionString = "Data Source=magazyn.db";
+using (SqliteConnection connection = new SqliteConnection(connectionString))
+{
+    connection.Open();
+    SqliteCommand command = connection.CreateCommand();
+    command.CommandText = @"
+        CREATE TABLE IF NOT EXISTS Przedmioty (
+        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        Nazwa TEXT NOT NULL,
+        Ilosc INTEGER NOT NULL,
+        Cena REAL NOT NULL
+        )";
+    command.ExecuteNonQuery();
+}
+
+List<Item> magazyn = new List<Item>();
 
 while (true)
 {
@@ -12,7 +30,7 @@ while (true)
     Console.WriteLine("6 - Wyjście");
     string wybor = Console.ReadLine() ?? "";
 
-    if (wybor == "1")
+    if (wybor == "1")       // Dodawanie przedmiotu
     {
         Console.WriteLine("Podaj nazwę przedmiotu:)");
         string nazwa = Console.ReadLine() ?? "";
@@ -35,8 +53,19 @@ while (true)
             cenaTekst = Console.ReadLine() ?? "";
         }
         magazyn.Add(new Item(nazwa, ilosc, cena));
+
+        using (SqliteConnection connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "INSERT INTO Przedmioty (Nazwa, Ilosc, Cena) VALUES (@nazwa, @ilosc, @cena)";
+            command.Parameters.AddWithValue("@nazwa", nazwa);
+            command.Parameters.AddWithValue("@ilosc", ilosc);
+            command.Parameters.AddWithValue("@cena", cena);
+            command.ExecuteNonQuery();
+        }
     }
-    else if (wybor == "2")
+    else if (wybor == "2")      // Wyświetlanie wszystkich przedmiotów
     {
         if (magazyn.Count == 0)
         {
@@ -51,7 +80,7 @@ while (true)
             }
         }
     }
-    else if (wybor == "3")
+    else if (wybor == "3")      // Edytowanie przedmiotu
     {
         if (magazyn.Count == 0)
         {
@@ -127,7 +156,7 @@ while (true)
             }
         }
     }
-    else if (wybor == "4")
+    else if (wybor == "4")      // Usuwanie przedmiotu
     {
         if (magazyn.Count == 0)
         {
@@ -154,12 +183,12 @@ while (true)
         }
     }
 
-    else if (wybor == "5")
+    else if (wybor == "5")      // Obliczanie wartości magazynu
     {
         decimal wartosc = Funkcje.WartoscMagazynu(magazyn);
         Console.WriteLine($"💰 Wartość magazynu: {wartosc} zł");
     }
-    else if (wybor == "6")
+    else if (wybor == "6")      // Wyjście z programu
     {
         break;
     }
