@@ -164,27 +164,27 @@ while (true)
     }
     else if (wybor == "4")      // Usuwanie przedmiotu
     {
-        if (magazyn.Count == 0)
+        using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
-            Console.WriteLine("📭 Magazyn jest pusty, nie ma czego usuwać.");
-        }
-        else
-        {
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT Id, Nazwa, Ilosc, Cena FROM Przedmioty";
+            SqliteDataReader reader = command.ExecuteReader();
+            List<int> idy = new List<int>();
+            List<string> nazwy = new List<string>();
+            int numer = 1;
             Console.WriteLine("=== Wybierz przedmiot do usunięcia ===");
-            Funkcje.WyswietlListe(magazyn);
-            Console.WriteLine("Wybierz numer przedmiotu do usunięcia: ");
-            string wyborUsuniecia = Console.ReadLine() ?? "";
-            int indeks;
-            if (!int.TryParse(wyborUsuniecia, out indeks) || indeks < 1 || indeks > magazyn.Count)
+            while (reader.Read())
             {
-                Console.WriteLine("❌ Nieprawidłowy numer!");
+                idy.Add(Convert.ToInt32(reader["Id"]));
+                nazwy.Add(Convert.ToString(reader["Nazwa"]) ?? "");
+                Console.WriteLine($"{numer}. {reader["Nazwa"]} | {reader["Ilosc"]} szt. | {reader["Cena"]} zł"
+                    );
+                numer++;
             }
-            else
+            if (idy.Count == 0)
             {
-                indeks--;
-                Item usuwany = magazyn[indeks];
-                magazyn.RemoveAt(indeks);
-                Console.WriteLine($"✅ Usunięto przedmiot: {usuwany.Name}");
+                Console.WriteLine("📭 Magazyn jest pusty, nie ma czego usuwać.");
             }
         }
     }

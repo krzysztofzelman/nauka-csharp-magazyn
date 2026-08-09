@@ -59,7 +59,7 @@ command.ExecuteNonQuery();
 - **Czemu parametry, a nie sklejanie tekstu?** Bo wartości trafiają do bazy jako „dane", a nie jako „część rozkazu" — bezpieczniej i baza nie pomyli się przy cudzysłowach i przecinkach
 - `ExecuteNonQuery()` — „wykonaj rozkaz i nie oczekuj wyniku" (używamy go do INSERT / UPDATE / DELETE)
 
-## 5. SELECT + SqliteDataReader — odczyt z bazy (w trakcie!)
+## 5. SELECT + SqliteDataReader — odczyt z bazy ✅ (działa — przetestowane na żywo 09.08)
 
 ```csharp
 command.CommandText = "SELECT Nazwa, Ilosc, Cena FROM Przedmioty";
@@ -88,7 +88,7 @@ while (reader.Read())
 ## Stan projektu / plan na następną sesję
 
 - ✅ Dodawanie przedmiotu → zapisuje do bazy (INSERT)
-- 🚧 Wyświetlanie → czyta z bazy (SELECT) — **do dokończenia** (do poprawy literówka z punktu 6)
-- ⏳ Edycja i usuwanie → na razie działają tylko na liście w pamięci, **nie zmieniają bazy**
+- ✅ Wyświetlanie → czyta z bazy (SELECT) — działa, przetestowane na żywo (09.08)
+- ⏳ Edycja i usuwanie → na razie działają tylko na liście w pamięci, **nie zmieniają bazy** (usuwanie: krok 1 zrobiony — lista z bazy z numerkami Id)
 - Następnym razem: `UPDATE` (edycja) i `DELETE` (usuwanie) w bazie, żeby wszystkie opcje menu działały na zapisanych danych
 - Do rozważenia: aktualizacja pakietu SQLite (kompilator ostrzegał o luce bezpieczeństwa)
