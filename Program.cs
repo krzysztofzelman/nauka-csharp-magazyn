@@ -88,25 +88,55 @@ while (true)
     }
     else if (wybor == "3")      // Edytowanie przedmiotu
     {
-        if (magazyn.Count == 0)
+        List<int> idy = new List<int>();
+        using (SqliteConnection  connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT Id, Nazwa, Ilosc, Cena FROM Przedmioty";
+            SqliteDataReader reader = command.ExecuteReader();
+            int numer = 1;
+            Console.WriteLine("=== Wybierz przedmiot do edycji ===");
+            while (reader.Read())
+            {
+                idy.Add(Convert.ToInt32(reader["Id"]));
+                Console.WriteLine($"{numer}. {reader["Nazwa"]} | {reader["Ilosc"]} szt. | {reader["Cena"]} zł");
+                numer++;
+            }
+        }
+        if (idy.Count == 0)
         {
             Console.WriteLine("📭 Magazyn jest pusty, nie ma czego edytować.");
         }
         else
         {
-            Console.WriteLine("=== Wybierz przedmiot do edycji ===");
-            Funkcje.WyswietlListe(magazyn);
-            Console.WriteLine("Wybierz numer przedmiotu do edycji: ");
+            Console.WriteLine("Podaj numer przedmiotu do edycji:");
             string wyborEdycji = Console.ReadLine() ?? "";
             int indeks;
-            if (!int.TryParse(wyborEdycji, out indeks) || indeks < 1 || indeks > magazyn.Count)
+            if (!int.TryParse(wyborEdycji, out indeks) || indeks < 1 || indeks > idy.Count)
             {
                 Console.WriteLine("❌ Nieprawidłowy numer!");
             }
             else
             {
                 indeks--;
-                Item edytowany = magazyn[indeks];
+                int wybraneId = idy[indeks];
+
+                Item edytowany;
+                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand command = connection.CreateCommand();
+                    command.CommandText = "SELECT Nazwa, Ilosc, Cena FROM Przedmioty WHERE Id = @id";
+                    command.Parameters.AddWithValue("@id", wybraneId);
+                    SqliteDataReader reader = command.ExecuteReader();
+                    reader.Read();
+                    edytowany = new Item(
+                        Convert.ToString(reader["Nazwa"]) ?? "",
+                        Convert.ToInt32(reader["Ilosc"]),
+                        Convert.ToDecimal(reader["Cena"]));
+                }
+
                 Console.WriteLine("Podaj nową nazwę (popraw i wciśnij Enter):");
                 Console.Write(edytowany.Name);
                 string nowaNazwa = edytowany.Name;
@@ -158,6 +188,18 @@ while (true)
                         nowaCenaTekst = Console.ReadLine() ?? "";
                     }
                     edytowany.Price = nowaCena;
+                }
+
+                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand command = connection.CreateCommand();
+                    command.CommandText = "UPDATE Przedmioty SET Nazwa = @nazwa, Ilosc = @ilosc, Cena = @cena WHERE Id = @id";
+                    command.Parameters.AddWithValue("@nazwa", edytowany.Name);
+                    command.Parameters.AddWithValue("@ilosc", edytowany.Quantity);
+                    command.Parameters.AddWithValue("@cena", edytowany.Price);
+                    command.Parameters.AddWithValue("@id", wybraneId);
+                    command.ExecuteNonQuery();
                 }
             }
         }
