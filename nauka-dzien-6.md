@@ -82,9 +82,13 @@ Dane są trzymane w dwóch miejscach naraz, które się rozjeżdżają:
 
 ## Plan na następną sesję (nowa kolejność!)
 
-1. **Opcja 3 (Edycja) → baza:** SELECT przedmiotów (jak opcja 2) + parking `idy` (wzorzec z opcji 4) → `UPDATE Przedmioty SET Nazwa=@nazwa, Ilosc=@ilosc, Cena=@cena WHERE Id = @id`
-   - Do decyzji: edytor z backspace — rozszerzyć na ilość/cenę, czy ujednolicić do ReadLine?
-2. **Opcja 5 (Wartość) → baza:** suma z bazy — pętla (jak opcja 2) albo `SELECT SUM(Ilosc * Cena)` (jedno pytanie, zero pętli)
+1. **Opcja 3 (Edycja) → baza:**
+   - **Krok 1 — SELECT wiersza:** pobierz cały wiersz z bazy po Id (drugie zapytanie: `SELECT ... WHERE Id = @id` — drugie użycie `WHERE`, pierwsze było w planowanym DELETE). Użyj wartości z bazy jako domyślnych w promptach ("Enter = zostaw {stara_wartość}" — ten sam wzorzec promptów, tylko źródłem domyślnych jest reader zamiast `magazyn[indeks]`).
+   - **Krok 2 — UPDATE wszystkich kolumn:** `UPDATE Przedmioty SET Nazwa=@n, Ilosc=@i, Cena=@c WHERE Id = @id`. Wszystkie trzy kolumny za każdym razem, nawet jeśli user nic nie zmienił — kod jest prostszy, a różnica wydajnościowa przy tym projekcie zero.
+   - **Backspace na liczbach → wyrzucić.** ReadLine + TryParse w pętli masz już w 4 miejscach (ilość/cena przy dodawaniu, ilość/cena przy edycji) — ujednolicenie do jednego wzorca = mniej niespodzianek przy czytaniu kodu. Backspace z `ConsoleKeyInfo` zostaje tylko dla nazwy (tekst), gdzie ma sens.
+2. **Opcja 5 (Wartość) → baza:** `SELECT SUM(Ilosc * Cena) FROM Przedmioty` — jedno pytanie, zero pętli. ⚠️ Dwie pułapki:
+   - **Pułapka 1 — typ:** SQLite nie ma `decimal`, `REAL` to `double` w środku. `reader[0]` odda `double`, nie `decimal`. Bezpośrednie rzutowanie `(decimal)reader[0]` → ❌ `InvalidCastException`. **Rozwiązanie:** `Convert.ToDecimal(reader[0])` — ten sam wzorzec co `Convert.ToInt32(reader["Id"])` w opcji 4, tylko inny typ docelowy.
+   - **Pułapka 2 — pusta tabela:** `SUM` na pustej tabeli zwraca `NULL`, nie `0`. W C# reader odda to jako `DBNull`. Próba `Convert.ToDecimal` na `DBNull` → ❌ wyjątek zamiast "0 zł". **Rozwiązanie:** `if (reader.IsDBNull(0))` przed konwersją — jeśli `true`, wartość = `0`.
 3. **Sprzątanie:** usunąć `List<Item> magazyn`; los `Funkcje.WyswietlListe` / `WartoscMagazynu` / `Item.cs` do decyzji
 4. **Opcja 4, krok 2:** `DELETE FROM Przedmioty WHERE Id = @id` — nowy koncept: **WHERE** ("gdzie" — usuń TYLKO ten wiersz)
 
