@@ -92,11 +92,65 @@ Dane są trzymane w dwóch miejscach naraz, które się rozjeżdżają:
 3. **Sprzątanie:** usunąć `List<Item> magazyn`; los `Funkcje.WyswietlListe` / `WartoscMagazynu` / `Item.cs` do decyzji
 4. **Opcja 4, krok 2:** `DELETE FROM Przedmioty WHERE Id = @id` — nowy koncept: **WHERE** ("gdzie" — usuń TYLKO ten wiersz)
 
+## 7. Ciąg dalszy dnia 6 — opcja 3 (Edycja) → baza ✅
+
+### Co zrobiono
+Opcja 3 przerobiona z listy na bazę — teraz działa w 3 krokach:
+
+1. **SELECT** — lista przedmiotów z bazy z numerkami (parking `idy`) — wzorzec z opcji 4
+2. **SELECT ... WHERE Id = @id** — po wybraniu numeru pobiera JEDEN wiersz z bazy i z niego buduje `Item edytowany` → stąd biorą się domyślne wartości w promptach ("Enter = zostaw 780")
+3. **UPDATE ... WHERE Id = @id** — na końcu wysyła do bazy nowe wartości (nazwa, ilość, cena)
+
+Część z backspace'em, ilością i ceną została **nietknięta** — dalej operuje na `edytowany`, tylko teraz ten obiekt pochodzi z bazy.
+
+### Test — sukces 🎉
+- Edycja: Glebogryzarka 1 szt. 780 zł → **3 szt. 830 zł**
+- Opcja 2 pokazała zmianę ✅
+- **Restart programu → zmiana przetrwała** ✅ (wcześniej znikała, bo była tylko na liście)
+
+### Nowe koncepty
+| Pojęcie | Co to jest |
+|---------|------------|
+| `WHERE Id = @id` | **pierwsze użycie WHERE w SELECT** — "daj mi TYLKO ten jeden wiersz o danym Id" |
+| `UPDATE ... SET ... WHERE Id = @id` | **rozkaz do bazy** (ExecuteNonQuery) — "zmień te kolumny w tym wierszu" |
+| `Item edytowany;` + `new Item(...)` z danych z reader | budowanie obiektu z wiersza bazy (Convert.ToString / ToInt32 / ToDecimal) |
+| Błąd CS0136 | nie można dwa razy deklarować `connection`/`command`/`reader` w zagnieżdżonych `using` → **naprawa:** pierwszy `using` zamykamy zaraz po pętli `while`, reszta idzie poza nim |
+
+### Pułapki
+- **CS0136** — trzy bloki `using` z tymi samymi nazwami zmiennych nie mogą być zagnieżdżone. Rozwiązanie: każde zapytanie ma SWÓJ osobny blok `using`, ale nie w środku innego.
+- **Autouzupełnianie VS** — przeszkadzało przy pisaniu (dopisywało/wykasowywało fragmenty). Wyłączone w: Narzędzia → Opcje → Edytor tekstu → C# → IntelliSense (odhaczyć "Pokaż listę uzupełniania"). Podpowiedź ręcznie: **Ctrl+Spacja**.
+- Literówki po wyłączeniu podpowiadacza: `comannd.ComanndText` → `command.CommandText` — trzeba czytać kod wzrokiem.
+
+## 8. Podsumowanie nauki (stan na koniec dnia 6)
+
+### Co potrafię teraz
+- **Pełny obieg CRUD na bazie SQLite:** Dodać (INSERT) → Wyświetlić (SELECT) → Edytować (UPDATE) → lista do usuwania (SELECT + parking Id)
+- "Piosenka" SQLite: Open → CreateCommand → CommandText → Execute → (Read)
+- **Rozkaz vs pytanie:** ExecuteNonQuery (INSERT/UPDATE/DELETE) vs ExecuteReader (SELECT)
+- **WHERE** — filtrowanie: "tylko ten wiersz"
+- **Parametry @nazwa @id** — bezpieczne wstawianie wartości do zapytań
+- **Parkingi (List<T>)** — numerki na ekranie ≠ Id w bazie: `numer 1 = idy[0]`
+- **Convert.ToInt32 / Convert.ToString / Convert.ToDecimal** — przerabianie wartości z bazy na typy C#
+- **Baza = jedyne źródło prawdy** — edycja przetrwa restart ✅
+
+### Wzorzec opcji na bazie (3 kroki)
+```
+1. SELECT + parking Id   → pokaż listę z numerkami
+2. SELECT ... WHERE Id   → pobierz wybrany wiersz
+3. UPDATE ... WHERE Id   → zapisz zmiany
+```
+
+### Zostało na następną sesję (nowa kolejność!)
+1. **Opcja 5 (Wartość) → baza:** `SELECT SUM(Ilosc * Cena) FROM Przedmioty` — ⚠️ pułapki: `Convert.ToDecimal` (REAL to double, nie decimal!) + `IsDBNull` (pusta tabela → SUM zwraca NULL)
+2. **Sprzątanie:** usunąć `List<Item> magazyn` (opcja 1 przestaje dodawać do listy), los `Funkcje.cs` / `Item.cs`
+3. **Opcja 4, krok 2:** `DELETE FROM Przedmioty WHERE Id = @id` — drugie użycie WHERE
+4. **Notatki:** zaktualizować status w tym pliku i ewentualnie zaktualizować pakiet SQLite (NU1903)
+
 ### Status
 
 - ✅ Dodawanie → baza (INSERT)
 - ✅ Wyświetlanie → baza (SELECT)
 - ✅ Usuwanie: krok 1 (lista z bazy + parkingi Id)
-- 🚧 Usuwanie: krok 2 — **wstrzymany** do czasu naprawy dwuźródłowości
-- ⏳ Edycja → do migracji — dopóki nie zrobiona, **nie testować edycji** (zmiany niewidoczne przy wyświetlaniu z bazy)
-- ⏳ Wartość magazynu → do migracji (na razie liczy z listy w pamięci)
+- ✅ **Edycja → baza (SELECT po Id + UPDATE)** — przetrwała restart
+- 🚧 Usuwanie: krok 2 (DELETE) — czeka na koniec
+- ⏳ Wartość magazynu → do migracji (na razie liczy z listy)
