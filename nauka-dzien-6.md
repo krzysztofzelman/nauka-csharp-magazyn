@@ -152,5 +152,60 @@ Część z backspace'em, ilością i ceną została **nietknięta** — dalej op
 - ✅ Wyświetlanie → baza (SELECT)
 - ✅ Usuwanie: krok 1 (lista z bazy + parkingi Id)
 - ✅ **Edycja → baza (SELECT po Id + UPDATE)** — przetrwała restart
-- 🚧 Usuwanie: krok 2 (DELETE) — czeka na koniec
+- ✅ **Usuwanie: krok 2 (DELETE po Id)** — dzień 7, patrz niżej
 - ⏳ Wartość magazynu → do migracji (na razie liczy z listy)
+
+---
+
+# Dzień 7 (10.08.2026) — opcja 4, krok 2: DELETE ✅
+
+## Co zrobiono
+
+Dopisana właściwa część usuwania w opcji 4 — po wybraniu numeru:
+
+```csharp
+indeks--;
+int id = idy[indeks];                        // parking: numer z ekranu → prawdziwe Id z bazy
+SqliteCommand komendaUsun = connection.CreateCommand();
+komendaUsun.CommandText = "DELETE FROM Przedmioty WHERE Id = @id";
+komendaUsun.Parameters.AddWithValue("@id", id);
+komendaUsun.ExecuteNonQuery();
+Console.WriteLine($"✅ Usunięto przedmiot: {nazwy[indeks]}");
+```
+
+## Nowy koncept
+
+| Pojęcie | Co to jest |
+|---------|------------|
+| `DELETE FROM ... WHERE Id = @id` | **rozkaz** (ExecuteNonQuery): „skasuj TYLKO ten wiersz, gdzie Id pasuje". Bez `WHERE` skasowałbyś **całą tabelę** — WHERE to bezpiecznik. |
+
+## Dlaczego wokół jednej linii jest tyle kodu?
+
+Bo samo usuwanie to jedna linia (`DELETE...`), reszta to obsługa:
+
+- **SELECT + parkingi** — user musi widzieć listę, żeby wybrać (baza rozumie tylko Id, nie numerki)
+- **walidacja** — user nie wpisze „abc" ani `99`
+- **`int id = idy[indeks]`** — tłumaczenie numeru (3) na prawdziwe Id (np. 37)
+- **komunikat** — user widzi, że się udało
+
+Analogia: **kuchnia (baza)** zna tylko „danie nr 37" (Id), **klient (user)** zna „trzecie na liście" — kod to **kelner**, który tłumaczy jedno na drugie.
+
+## Test — sukces 🎉
+
+- Dodany „Test" 1×1 → opcja 4, numer 7 → `✅ Usunięto przedmiot: Test` → opcja 2: **zniknął z bazy** (opcja 2 czyta z pliku, więc to dowód na kasowanie w bazie) ✅
+- Walidacja: wpisanie `abc` → `❌ Nieprawidłowy numer!` — program się nie wysypał ✅
+
+## Błędy dnia
+
+1. **Brakująca klamra `{`** po `if (!int.TryParse(...))` — była `}` zamykająca, nie było otwierającej → „else bez if". Wzorzec „pudełka w pudełkach" (drugi raz).
+2. **Literówka `koemndaUsun`** → `komendaUsun` — zmienna ma JEDNO imię przez cały kod; deklaracja i użycie muszą się zgadzać co do znaku.
+3. Lekcja: **imię parametru w `AddWithValue` musi się zgadzać z dziurą w SQL co do znaku** — `"@id"` ≠ `" @id"`.
+
+## Status (koniec dnia 7)
+
+- ✅ Dodawanie → baza (INSERT)
+- ✅ Wyświetlanie → baza (SELECT)
+- ✅ Edycja → baza (UPDATE po Id)
+- ✅ **Usuwanie → baza (DELETE po Id) — cały CRUD na bazie!**
+- ⏳ Wartość magazynu → do migracji (`SELECT SUM(Ilosc * Cena)` + pułapki DBNull/decimal)
+- ⏳ Sprzątanie: `List<Item> magazyn`, los `Funkcje.cs` / `Item.cs`

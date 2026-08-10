@@ -206,27 +206,49 @@ while (true)
     }
     else if (wybor == "4")      // Usuwanie przedmiotu
     {
-        using (SqliteConnection connection = new SqliteConnection(connectionString))
+        using (SqliteConnection connection = new SqliteConnection(connectionString))    // Otwieranie połączenia z bazą danych
         {
-            connection.Open();
-            SqliteCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT Id, Nazwa, Ilosc, Cena FROM Przedmioty";
-            SqliteDataReader reader = command.ExecuteReader();
-            List<int> idy = new List<int>();
-            List<string> nazwy = new List<string>();
-            int numer = 1;
-            Console.WriteLine("=== Wybierz przedmiot do usunięcia ===");
-            while (reader.Read())
+            connection.Open();      // Otwieranie połączenia z bazą danych
+            SqliteCommand command = connection.CreateCommand();     // Tworzenie polecenia SQL
+            command.CommandText = "SELECT Id, Nazwa, Ilosc, Cena FROM Przedmioty"; // Tworzenie polecenia SQL
+            SqliteDataReader reader = command.ExecuteReader();  // Wykonywanie polecenia SQL i pobieranie wyników
+            List<int> idy = new List<int>();    // Tworzenie listy do przechowywania identyfikatorów przedmiotów
+            List<string> nazwy = new List<string>();    // Tworzenie listy do przechowywania nazw przedmiotów
+            int numer = 1;  // Tworzenie zmiennej do numerowania przedmiotów
+            Console.WriteLine("=== Wybierz przedmiot do usunięcia ===");    
+            while (reader.Read()) // Pętla do wyświetlania przedmiotów
             {
-                idy.Add(Convert.ToInt32(reader["Id"]));
-                nazwy.Add(Convert.ToString(reader["Nazwa"]) ?? "");
-                Console.WriteLine($"{numer}. {reader["Nazwa"]} | {reader["Ilosc"]} szt. | {reader["Cena"]} zł"
-                    );
+                idy.Add(Convert.ToInt32(reader["Id"])); 
+                nazwy.Add(Convert.ToString(reader["Nazwa"]) ?? ""); 
+                Console.WriteLine($"{numer}. {reader["Nazwa"]} | {reader["Ilosc"]} szt. | {reader["Cena"]} zł" 
+                    ); 
                 numer++;
             }
             if (idy.Count == 0)
             {
                 Console.WriteLine("📭 Magazyn jest pusty, nie ma czego usuwać.");
+
+            }
+            else 
+            {
+                Console.WriteLine("Podaj numer przedmiotu do usunięcia:"); 
+                string wyborUsuniecia = Console.ReadLine() ?? ""; 
+                int indeks; 
+                if (!int.TryParse(wyborUsuniecia, out indeks) || indeks < 1 || indeks > idy.Count)
+                {
+                    Console.WriteLine("❌ Nieprawidłowy numer!");
+                }
+                else 
+                {
+                    indeks--; 
+                    int id = idy[indeks];
+                    SqliteCommand komendaUsun = connection.CreateCommand();
+                    komendaUsun.CommandText = "DELETE FROM Przedmioty WHERE Id = @id";
+                    komendaUsun.Parameters.AddWithValue("@id", id);
+                    komendaUsun.ExecuteNonQuery();
+                    Console.WriteLine($"✅ Usunięto przedmiot: {nazwy[indeks]}");
+                    
+                }
             }
         }
     }
