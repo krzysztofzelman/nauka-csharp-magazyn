@@ -206,17 +206,17 @@ while (true)
     }
     else if (wybor == "4")      // Usuwanie przedmiotu
     {
-        using (SqliteConnection connection = new SqliteConnection(connectionString))    // Otwieranie połączenia z bazą danych
+        using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
-            connection.Open();      // Otwieranie połączenia z bazą danych
-            SqliteCommand command = connection.CreateCommand();     // Tworzenie polecenia SQL
-            command.CommandText = "SELECT Id, Nazwa, Ilosc, Cena FROM Przedmioty"; // Tworzenie polecenia SQL
-            SqliteDataReader reader = command.ExecuteReader();  // Wykonywanie polecenia SQL i pobieranie wyników
-            List<int> idy = new List<int>();    // Tworzenie listy do przechowywania identyfikatorów przedmiotów
-            List<string> nazwy = new List<string>();    // Tworzenie listy do przechowywania nazw przedmiotów
-            int numer = 1;  // Tworzenie zmiennej do numerowania przedmiotów
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();  
+            command.CommandText = "SELECT Id, Nazwa, Ilosc, Cena FROM Przedmioty"; 
+            SqliteDataReader reader = command.ExecuteReader();  
+            List<int> idy = new List<int>();    
+            List<string> nazwy = new List<string>();    
+            int numer = 1;  
             Console.WriteLine("=== Wybierz przedmiot do usunięcia ===");    
-            while (reader.Read()) // Pętla do wyświetlania przedmiotów
+            while (reader.Read()) 
             {
                 idy.Add(Convert.ToInt32(reader["Id"])); 
                 nazwy.Add(Convert.ToString(reader["Nazwa"]) ?? ""); 
