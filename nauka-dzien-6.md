@@ -209,3 +209,84 @@ Analogia: **kuchnia (baza)** zna tylko „danie nr 37" (Id), **klient (user)** z
 - ✅ **Usuwanie → baza (DELETE po Id) — cały CRUD na bazie!**
 - ⏳ Wartość magazynu → do migracji (`SELECT SUM(Ilosc * Cena)` + pułapki DBNull/decimal)
 - ⏳ Sprzątanie: `List<Item> magazyn`, los `Funkcje.cs` / `Item.cs`
+
+---
+
+# Dzień 8 (11.08.2026) — podstawy na moim kodzie + parking Id/id/idy ✅
+
+Dziś zero nowego kodu — za to teoria NA WŁASNYM kodzie (nie z kursu) + domknięty temat, który wczoraj był "mętnie".
+
+## 1. Zasada: najpierw TYP, potem IMIĘ
+
+```
+typ imię = wartość;
+```
+
+- `string nazwa = "Kosiarka";` → typ: string, imię: nazwa
+- `int ilosc;` → typ: int, imię: ilosc
+- `decimal cena;` → typ: decimal, imię: cena
+
+**Trik "patrz na wartość"** — jak poznać typ bez pamiętania:
+
+| Widzisz | Typ |
+|---------|-----|
+| tekst w cudzysłowie `"..."` | string |
+| liczba bez przecinka `5` | int |
+| liczba z przecinkiem `12,50` | decimal |
+
+## 2. List<T> — lista ("pudełko")
+
+```csharp
+List<Item> magazyn = new List<Item>();
+List<int> idy = new List<int>();
+List<string> nazwy = new List<string>();
+```
+
+- Ten sam wzorzec co zwykła zmienna: typ + imię. `< >` mówi, czego może być dużo w środku.
+- **Klucz: "pudełko TO JEST zmienna"** — wszystko z imieniem to zmienna; różnica tylko w tym, ILE wartości mieści: zwykła zmienna JEDNĄ, lista WIELE.
+- `new List<...>()` = "zbuduj nową, pustą listę" — musi być zbudowana, zanim cokolwiek dodasz (`Add`).
+- `int ilosc;` nie potrzebuje `new` — jedna liczba mieści się sama.
+
+## 3. Parking Id / id / idy — ZALICZONY ✅ (wczoraj: "mętnie")
+
+| Nazwa | Co to jest |
+|-------|------------|
+| `Id` | **NIE jest zmienną.** To nazwa kolumny W BAZIE (z `CREATE TABLE ... Id INTEGER PRIMARY KEY AUTOINCREMENT`). Żyje tylko w SQL i w cudzysłowach: `SELECT Id`, `WHERE Id = @id`, `reader["Id"]` |
+| `id` | zwykła zmienna na JEDNĄ liczbę: `int id = idy[indeks];` |
+| `idy` | lista na WIELE numerów |
+
+### Poprawka, którą warto zapamiętać
+**Edycja NIE tworzy nowego Id.** Id baza nadaje RAZ, przy dodawaniu. `UPDATE ... WHERE Id = @id` zmienia wartości w TYM SAMYM wierszu. Usunięcie kasuje wiersz, a jego numer NIGDY nie wraca → dlatego bywają dziury (1, 2, 5, 9) — to nie "stare dane", tylko usunięte wiersze. **Id = stała tożsamość wiersza.**
+
+### while (reader.Read()) — słowo po słowie
+- `reader` — wynik zapytania SELECT (tabelka), który dostałeś z `ExecuteReader()`
+- `Read()` — "przestaw się na następny wiersz i powiedz, czy jest": `true` = jest, `false` = koniec
+- `while` — powtarzaj, dopóki `true`. Czytnik startuje PRZED pierwszym wierszem.
+- Dlatego `while`, nie `if`: `if` sprawdza raz, a wierszy nie znasz z góry.
+
+### Po co lista `idy`?
+**Numer wpisany przez usera ≠ Id w bazie.** User wybiera "3" (trzecia linia na ekranie), a baza zna tylko swoje Id (np. 9). Lista to most kolejności: **linia N na ekranie ↔ `idy[N-1]`**. Bez listy program po wypisaniu zapomina, która linia miała które Id.
+
+## 4. Nadpisywanie — moment "aaa teraz kumam" 💡
+
+- `=` **NADPISUJE** — zmienna ma JEDNO miejsce:
+  - obrót 1: `id = 3` → w zmiennej: 3
+  - obrót 2: `id = 8` → w zmiennej: 8 (3 zniknęła!)
+  - obrót 3: `id = 12` → w zmiennej: 12 (8 zniknęła!)
+  - po pętli zostaje tylko OSTATNIA wartość
+- `Add` **DOPISUJE** — lista rośnie: [3] → [3, 8] → [3, 8, 12]. Nic nie znika.
+
+Nadpisywanie nie jest błędem: `string wybor = Console.ReadLine()` nadpisuje się co obrót menu i to OK, bo potrzebujesz tylko ostatniego wyboru. **Listy używasz wtedy, gdy potrzebujesz WSZYSTKICH wartości naraz.**
+
+## 5. Opcja 5 — co to jest (wyjaśnione, migracja na jutro)
+
+- "💰 Wartość magazynu" = ile warte jest wszystko w magazynie: suma ilość × cena
+- Teraz liczy funkcja `WartoscMagazynu` (Funkcje.cs) z LISTY w pamięci → po restarcie pokaże **0 zł**, bo lista startuje pusta
+- **Jutro:** migracja do bazy — `SELECT SUM(Ilosc * Cena) FROM Przedmioty`
+
+## Status (koniec dnia 8)
+
+- ✅ Podstawy: typ+imię, trik "patrz na wartość", List<T>
+- ✅ Parking Id/id/idy — wczoraj "mętnie", dziś zaliczony (sam opisałem nadpisywanie własnymi słowami)
+- ⏳ **Opcja 5 → baza (SUM + Convert.ToDecimal + IsDBNull) — NASTĘPNA SESJA**
+- ⏳ Sprzątanie: `List<Item> magazyn`, los `Funkcje.cs` / `Item.cs`
