@@ -16,8 +16,6 @@ using (SqliteConnection connection = new SqliteConnection(connectionString))
     command.ExecuteNonQuery();
 }
 
-List<Item> magazyn = new List<Item>();
-
 while (true)
 {
     Console.WriteLine("📦 Witaj w systemie magazynowym!");
@@ -52,7 +50,6 @@ while (true)
             Console.WriteLine("❌ Nieprawidłowa liczba! podaj cenę jeszcze raz:");
             cenaTekst = Console.ReadLine() ?? "";
         }
-        magazyn.Add(new Item(nazwa, ilosc, cena));
 
         using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
@@ -255,8 +252,23 @@ while (true)
 
     else if (wybor == "5")      // Obliczanie wartości magazynu
     {
-        decimal wartosc = Funkcje.WartoscMagazynu(magazyn);
-        Console.WriteLine($"💰 Wartość magazynu: {wartosc} zł");
+        using (SqliteConnection connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT SUM(Ilosc * Cena) FROM Przedmioty";
+            SqliteDataReader reader = command.ExecuteReader();
+            reader.Read();
+            if (reader.IsDBNull(0))
+            {
+                Console.WriteLine("📭 Magazyn jest pusty, wartość wynosi 0 zł.");
+            }
+            else
+            {
+                decimal suma = Convert.ToDecimal(reader[0]);
+                Console.WriteLine($"💰 Wartość magazynu: {suma} zł");
+            }
+        }
     }
     else if (wybor == "6")      // Wyjście z programu
     {

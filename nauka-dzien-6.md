@@ -290,3 +290,49 @@ Nadpisywanie nie jest błędem: `string wybor = Console.ReadLine()` nadpisuje si
 - ✅ Parking Id/id/idy — wczoraj "mętnie", dziś zaliczony (sam opisałem nadpisywanie własnymi słowami)
 - ⏳ **Opcja 5 → baza (SUM + Convert.ToDecimal + IsDBNull) — NASTĘPNA SESJA**
 - ⏳ Sprzątanie: `List<Item> magazyn`, los `Funkcje.cs` / `Item.cs`
+
+# Dzień 9 (12.08.2026) — opcja 5 na bazie + sprzątanie ✅
+
+## Co zrobiono
+
+1. **Opcja 5 (Wartość magazynu) → baza.** Zamiana `Funkcje.WartoscMagazynu(magazyn)` (liczyła z listy w pamięci) na zapytanie do bazy:
+
+```csharp
+command.CommandText = "SELECT SUM(Ilosc * Cena) FROM Przedmioty";
+SqliteDataReader reader = command.ExecuteReader();
+reader.Read();
+if (reader.IsDBNull(0))
+{
+    Console.WriteLine("📭 Magazyn jest pusty, wartość wynosi 0 zł.");
+}
+else
+{
+    decimal suma = Convert.ToDecimal(reader[0]);
+    Console.WriteLine($"💰 Wartość magazynu: {suma} zł");
+}
+```
+
+2. **Sprzątanie:** usunięte `List<Item> magazyn` (deklaracja + `magazyn.Add(...)` w opcji 1) i cały plik `Funkcje.cs` (martwy kod). `Item.cs` został — opcja 3 go używa (`Item edytowany`).
+
+## Nowe koncepty
+
+- **`SUM(...)`** — SQL sam liczy sumę, zamiast pętli `foreach` w C#. `SUM(Ilosc * Cena)` = "dla każdego wiersza policz ilość×cena i dodaj do kupy". Wynik to **zawsze 1 wiersz z 1 kolumną** → dlatego `reader.Read()` bez `while`.
+- **`reader[0]`** — odczyt kolumny po **numerze** zamiast nazwy (kolumna SUM nie ma imienia). `reader[0]` = "w bieżącym wierszu weź kolumnę 0". Jak Excel: najpierw wiersz (na którym stoi Read), potem kolumna (numer).
+- **`reader.IsDBNull(0)`** — "czy komórka w kolumnie 0 jest pusta (NULL)?" Pułapka: **pusta tabela → SUM zwraca NULL, a nie 0** — ale wiersz NADAL istnieje! Różnica: `Read()` pyta o wiersz ("czy jest następny?"), `IsDBNull(0)` pyta o komórkę ("czy jest pusta?"). W opcji 2 pusty magazyn = brak wierszy, tu = 1 wiersz z pustą komórką. Bez tego sprawdzenia `Convert.ToDecimal` na pustce → błąd.
+- **`Convert.ToDecimal(reader[0])`** — cena w bazie to `REAL` = **double** w C# (SQLite nie zna decimala) → trzeba skonwertować. Ten sam wzorzec Convert co przy `Convert.ToInt32(reader["Id"])`.
+- **IntelliSense podpowiadał `ExecuteScalar()`** — VS pokazuje LISTĘ wszystkich metod na obiekcie (ExecuteNonQuery / ExecuteReader / ExecuteScalar), to nie jest nakaz. ExecuteScalar też by zadziałał dla SUM (zwraca od razu jedną wartość), ale wybraliśmy ExecuteReader — ta sama piosenka co opcja 2, zero nowych metod.
+- **Martwy kod** — kompiluje się, ale nic go nie woła. Kompilator sam tego nie sprząta (nie zgłosił błędu po zostawieniu Funkcje.cs) — trzeba wynosić ręcznie.
+
+## Test — sukces 🎉
+
+- Opcja 5 przed edycją: **14040 zł**
+- Edycja Kosy spalinowej (ilość 3 → 5) przez opcję 3 → opcja 5: **17040 zł** (+3000 = 2×1500)
+- **Dowód, że opcja 5 czyta z bazy:** gdyby liczyła ze starej listy, pokazałaby 14040 drugi raz (lista nie wie o edycji). Pokazała świeżą sumę z bazy = dwa źródła prawdy sklejone.
+- Po sprzątaniu: dodane "Grabie" 2×60 → lista pokazuje 7 przedmiotów z bazy, opcja 5: **17160 zł** (17040 + 120) ✅
+
+## Status (koniec dnia 9)
+
+- ✅ **Wszystkie opcje (1–5) działają wyłącznie na bazie** — jedyne źródło prawdy
+- ✅ `List<Item> magazyn` usunięta, `Funkcje.cs` usunięty (martwy kod), `Item.cs` zostaje
+- ✅ Projekt: 2 pliki `.cs` (Program.cs, Item.cs)
+- 💡 W planie: konsola skończona → następny etap (ASP.NET Core / Blazor — zainteresowanie z 28.07)
