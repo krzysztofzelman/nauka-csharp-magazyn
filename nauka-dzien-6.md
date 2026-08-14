@@ -335,4 +335,4 @@ else
 - ✅ **Wszystkie opcje (1–5) działają wyłącznie na bazie** — jedyne źródło prawdy
 - ✅ `List<Item> magazyn` usunięta, `Funkcje.cs` usunięty (martwy kod), `Item.cs` zostaje
 - ✅ Projekt: 2 pliki `.cs` (Program.cs, Item.cs)
-- 💡 W planie: konsola skończona → następny etap (ASP.NET Core / Blazor — zainteresowanie z 28.07)
+- 💡 **DECYZJA O KIERUNKU:** konsola skończona → **ASP.NET Core API** (backend = silnik). Utworzony projekt `MagazynApi` (dotnet new webapi --use-controllers). Frontend dopiero po API — na start **Blazor (w C#)**, TS/React później. Łączenie frontend↔backend przez HTTP. Notatka: `MagazynApi/nauka-dzien-1.md`.
