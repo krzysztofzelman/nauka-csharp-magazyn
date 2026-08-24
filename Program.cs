@@ -16,6 +16,23 @@ using (SqliteConnection connection = new SqliteConnection(connectionString))
     command.ExecuteNonQuery();
 }
 
+using (SqliteConnection connection = new SqliteConnection(connectionString))
+{
+    connection.Open();
+    SqliteCommand command = connection.CreateCommand();
+    command.CommandText = @"
+        CREATE TABLE IF NOT EXISTS Partie (
+        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        PrzedmiotId INTEGER,
+        Ilosc INTEGER,
+        Cena REAL,
+        Data TEXT,
+        Status TEXT,
+        BatchNumber TEXT
+        )";
+    command.ExecuteNonQuery();
+}
+
 while (true)
 {
     Console.WriteLine("📦 Witaj w systemie magazynowym!");
@@ -25,7 +42,9 @@ while (true)
     Console.WriteLine("3 - Edytuj przedmiot");
     Console.WriteLine("4 - Usuń przedmiot");
     Console.WriteLine("5 - Wartość magazynu");
-    Console.WriteLine("6 - Wyjście");
+    Console.WriteLine("6 - PZ (przyjęcie dostawy)");
+    Console.WriteLine("7 - WZ (wydanie towaru)");
+    Console.WriteLine("8 - Wyjście");
     string wybor = Console.ReadLine() ?? "";
 
     if (wybor == "1")       // Dodawanie przedmiotu
@@ -270,7 +289,75 @@ while (true)
             }
         }
     }
-    else if (wybor == "6")      // Wyjście z programu
+    else if  (wybor == "6")         // PZ Przyjęcie dostawy
+    {
+        List<int> idy = new List<int>();
+        using (SqliteConnection connection = new SqliteConnection (connectionString))
+        {
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT Id, Nazwa FROM Przedmioty";
+            SqliteDataReader reader = command.ExecuteReader();
+            int numer = 1;
+            Console.WriteLine("=== Wybierz artykuł dla dostawy ===");
+            while (reader.Read())
+            {
+                idy.Add(Convert.ToInt32(reader["Id"]));
+                Console.WriteLine($"{ numer}. { reader["Nazwa"]}");
+                numer++;
+            }
+        }
+        if (idy.Count == 0)
+        {
+            Console.WriteLine("📭 Magazyn jest pusty, nie można przyjąć dostawy.");
+        }
+        else
+        {
+            Console.WriteLine("Podaj numer artykułu:");
+            string wyborArtykulu = Console.ReadLine() ?? "";
+            int indeks;
+            if (!int.TryParse(wyborArtykulu, out indeks) || indeks < 1 || indeks > idy.Count)
+            {
+                Console.WriteLine("❌ Nieprawidłowy numer!");
+            }
+            else
+            {
+                indeks--;
+                int wybraneId = idy[indeks];
+
+                Console.WriteLine("Podaj ilość przyjętych sztuk:");
+                string iloscTekst = Console.ReadLine() ?? "";
+                int ilosc;
+                while (!int.TryParse(iloscTekst, out ilosc) || ilosc <= 0)
+                {
+                    Console.WriteLine("❌ Nieprawidłowa liczba! podaj ilość jeszcze raz:");
+                    iloscTekst = Console.ReadLine() ?? "";
+                }
+
+                Console.WriteLine("Podaj cenę za sztukę:");
+                string cenaTekst = Console.ReadLine() ?? "";
+                decimal cena;
+                while (!decimal.TryParse(cenaTekst, out cena) || cena <= 0)
+                {
+                    Console.WriteLine("❌ Nieprawidłowa liczba! podaj cenę jeszcze raz:");
+                    cenaTekst = Console.ReadLine() ?? "";
+                }
+
+                Console.WriteLine("Podaj numer partii (np. KOSIARKA-0822):");
+                string batchNumber = Console.ReadLine() ?? "";
+
+                // tu dalej: zapis do bazy (INSERT + UPDATE)
+            }
+        }
+    }
+
+
+    else if (wybor == "7")      // WZ — wydanie towaru (FIFO)
+    {
+        // tu dalej: wydanie FIFO — najstarsze partie schodzą pierwsze
+    }
+
+    else if (wybor == "8")      // Wyjście z programu
     {
         break;
     }
