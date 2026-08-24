@@ -336,3 +336,80 @@ else
 - ✅ `List<Item> magazyn` usunięta, `Funkcje.cs` usunięty (martwy kod), `Item.cs` zostaje
 - ✅ Projekt: 2 pliki `.cs` (Program.cs, Item.cs)
 - 💡 **DECYZJA O KIERUNKU:** konsola skończona → **ASP.NET Core API** (backend = silnik). Utworzony projekt `MagazynApi` (dotnet new webapi --use-controllers). Frontend dopiero po API — na start **Blazor (w C#)**, TS/React później. Łączenie frontend↔backend przez HTTP. Notatka: `MagazynApi/nauka-dzien-1.md`.
+
+---
+
+# Dzień 16 (24.08.2026) — PZ/WZ w konsoli (start)
+
+## Co się dzieje: PZ = przyjęcie dostawy, WZ = wydanie (FIFO)
+
+Magazyn dostał nowy wymiar: **partie**. Wcześniej był tylko „ile sztuk czego" (Przedmioty). Teraz dochodzi **skąd się to wzięło** — każda dostawa to osobna partia w tabeli `Partie`. WZ (wydanie) będzie brał towar **z najstarszych partii** (FIFO = first in, first out — pierwsze weszło, pierwsze wyszło).
+
+## 1. Tabela Partie — bliźniak Przedmioty ✅
+
+W `Program.cs` dodany drugi blok CREATE TABLE — **identyczny wzorzec**:
+
+```
+1. Otwórz połączenie   →  using (SqliteConnection ...) { connection.Open();
+2. Przygotuj polecenie →  SqliteCommand command = connection.CreateCommand(); command.CommandText = "...";
+3. Wykonaj             →  command.ExecuteNonQuery();
+```
+
+```sql
+CREATE TABLE IF NOT EXISTS Partie (
+Id INTEGER PRIMARY KEY AUTOINCREMENT,   -- numer partii, baza nadaje sama
+PrzedmiotId INTEGER,                    -- do KTÓREGO artykułu należy (np. 1 = Kosiarka)
+Ilosc INTEGER,                          -- ile sztuk w tej partii
+Cena REAL,                              -- cena za sztukę z TEJ dostawy
+Data TEXT,                              -- kiedy doszła
+Status TEXT,                            -- "Przyjete" / "Wydane" (kluczowe dla FIFO!)
+BatchNumber TEXT                        -- ludzki numer partii (np. KOSIARKA-0822)
+)
+```
+
+- `IF NOT EXISTS` = „jeśli już istnieje, nie rób nic" — bezpieczne przy każdym starcie
+- **Schemat MUSI być identyczny z API** (MagazynApi) — bo to **ten sam plik bazy** (`Magazyn\magazyn.db`, patrz appsettings.json API). Partie dodane na stronie /partie konsola od razu zobaczy.
+- Tabela już istniała (stworzyło ją API) → ten blok to „samowystarczalność" konsoli + ściąga schematu
+
+## 2. Menu: 6 = PZ, 7 = WZ, 8 = Wyjście ✅
+
+Wyjście musiało przesunąć się z 6 na 8 — program sprawdza warunki po kolei, więc 6 i 7 zajęły PZ i WZ.
+
+## 3. PZ część 1 — lista artykułów (wzorzec opcji 4) ✅
+
+```csharp
+List<int> idy = new List<int>();          // parking na Id
+using (SqliteConnection connection = ...) // piosenka
+{
+    ...
+    command.CommandText = "SELECT Id, Nazwa FROM Przedmioty";  // tylko to, czego trzeba
+    SqliteDataReader reader = command.ExecuteReader();          // pytanie → odpowiedź
+    int numer = 1;
+    while (reader.Read())                 // dopóki jest wiersz
+    {
+        idy.Add(Convert.ToInt32(reader["Id"]));   // zapamiętaj Id
+        Console.WriteLine($"{numer}. {reader["Nazwa"]}");
+        numer++;
+    }
+}
+if (idy.Count == 0)   // pusta lista = pusty magazyn
+```
+
+## 4. PZ część 2 — wybór + dane dostawy ✅
+
+- **Wybór numeru** (wzorzec opcji 4): `indeks--` (menu od 1, lista od 0) → `wybraneId = idy[indeks]`
+- **Ilość** — pętla walidacji (wzorzec opcji 1): `while (!int.TryParse(...) || ilosc <= 0)`
+- **Cena** — to samo z `decimal.TryParse`
+- **BatchNumber** — zwykły tekst, bez walidacji
+
+⚠️ **Lekcja dnia:** gdy bloki się zagnieżdżają, łatwo „wjechać" pętlą w pętlę (cena w środku ilości). Ratunek: pisać mniejszymi kawałkami + sprawdzać `sprawdz` co kawałek.
+
+## 5. Obserwacja: „sztywny kod co do połączeń baz"
+
+Piosenka (using → Open → CreateCommand → Execute) jest **powtórzona w każdej opcji** — to duplikacja. Celowa: konsola to ściąga, każdy blok ma całość pod nosem. Profesjonalnie robi się to **jedną metodą-pomocnikiem** (jak `builder.Configuration` w API) — refaktor na później, nie w środku budowy.
+
+## Status (koniec dnia 16)
+
+- ✅ Tabela `Partie` + menu 6/7/8 + PZ części 1–2 (bez zapisu do bazy jeszcze)
+- ✅ Build OK, commit `7f865d7` push
+- ⏭️ **Następne:** PZ część 3 (INSERT do Partie + UPDATE Przedmioty.Ilosc) → test → WZ FIFO (opcja 7)
