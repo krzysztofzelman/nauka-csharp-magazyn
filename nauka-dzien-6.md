@@ -413,3 +413,46 @@ Piosenka (using → Open → CreateCommand → Execute) jest **powtórzona w ka�
 - ✅ Tabela `Partie` + menu 6/7/8 + PZ części 1–2 (bez zapisu do bazy jeszcze)
 - ✅ Build OK, commit `7f865d7` push
 - ⏭️ **Następne:** PZ część 3 (INSERT do Partie + UPDATE Przedmioty.Ilosc) → test → WZ FIFO (opcja 7)
+
+---
+
+# DZIEŃ 17 (2026-08-25) — PZ KOMPLET: zapis do bazy + test na żywo ✅
+
+## 1. INSERT do Partie (dziury @)
+
+```csharp
+command.CommandText = "INSERT INTO Partie (PrzedmiotId, Ilosc, Cena, Data, Status, BatchNumber) VALUES (@przedmiotId, @ilosc, @cena, @data, @status, @batchNumber)";
+command.Parameters.AddWithValue("@przedmiotId", wybraneId);
+...
+```
+
+- **`@cena` = dziura (placeholder)** — SQL widzi znak, wartość wgrywa `AddWithValue`. Nazwy muszą się zgadzać (`@cena` w SQL = `"@cena"` w kodzie). Po co dziury? Bezpieczeństwo: wpisany tekst nigdy nie dotyka samego SQL-a.
+- **`@data` = `DateTime.Today.ToString("yyyy-MM-dd")`** — data dzisiejsza AUTOMATYCZNIE
+- **`@status` = `"Przyjete"`** — na sztywno, AUTOMATYCZNIE (umowa: mniej pisania)
+- Format daty `yyyy-MM-dd` = **ISO, NIE amerykański** (amerykański to MM/dd/yyyy). Identyczny z API → jedna baza, jeden zapis.
+
+## 2. UPDATE Przedmioty — podbicie stanu
+
+```csharp
+command.CommandText = "UPDATE Przedmioty SET Ilosc = Ilosc + @ilosc WHERE Id = @przedmiotId";
+```
+
+- `Ilosc = Ilosc + @ilosc` = **nowa ilość = stara z bazy + przyjęta** (dokładamy; opcja 3 nadpisywała całość)
+- `WHERE Id = @przedmiotId` — tylko wiersz wybranego artykułu
+- Dwie książki: **Partie** = dziennik dostaw (każda dostawa = wiersz), **Przedmioty** = aktualny stan (suma). INSERT pisze do dziennika, UPDATE podbija sumę.
+
+## 3. Test na żywo ✅
+
+- Opcja 6: Wąż ogrodowy, ilość 5, cena 50, partia `TEST-0825` → „✅ Przyjęto dostawę"
+- Opcja 2: Wąż ogrodowy **12 → 17** (UPDATE zadziałał)
+- Strona **/partie**: wiersz `TEST-0825` (Id 4, Wąż ogrodowy, 5 szt., 50 zł, 2026-08-25, Przyjete) — **konsola → baza → API → strona, jeden łańcuch** 🎉
+- Detal: Id 1,3,4 (brak 2) — AUTOINCREMENT nigdy nie używa Id drugi raz po usunięciu
+
+## 4. Lekcja: literówki = „wzrok programisty"
+
+W bloku zapisu było ~10 literówek (`Parametrs`, `AddWythValute`, `ExecuteNonQwery`, `SqlLiteConnection`, dwa `=` zamiast `+`, spacja w `@przedmiot Id`, string rozbity na 2 linie). VS podkreśla je na czerwono. Znaleźć je samemu = dobre ćwiczenie; przy dużej liczbie — śmiało delegować poprawę, to męczarnia, nie nauka.
+
+## Status (koniec dnia 17)
+
+- ✅ **PZ KOMPLETNE** (opcja 6): lista → wybór → dane → INSERT + UPDATE → test na żywo ✅
+- ⏭️ **Następne:** **WZ (opcja 7) — logika FIFO** — wydaj od najstarszej partii (ORDER BY Id ASC), wyzerowana → Status="Wydane", za mało towaru → komunikat. Rozmiar: największy pojedynczy kawałek logiki (pętla „zjada" partie po kolei), ale do podziału na 3–4 małe kroki.

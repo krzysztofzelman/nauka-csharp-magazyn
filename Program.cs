@@ -345,8 +345,30 @@ while (true)
 
                 Console.WriteLine("Podaj numer partii (np. KOSIARKA-0822):");
                 string batchNumber = Console.ReadLine() ?? "";
-
-                // tu dalej: zapis do bazy (INSERT + UPDATE)
+            
+                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand command = connection.CreateCommand();
+                    command.CommandText = "INSERT INTO Partie (PrzedmiotId, Ilosc, Cena, Data, Status, BatchNumber) VALUES (@przedmiotId, @ilosc, @cena, @data, @status, @batchNumber)";
+                    command.Parameters.AddWithValue("@przedmiotId", wybraneId);
+                    command.Parameters.AddWithValue("@ilosc", ilosc);
+                    command.Parameters.AddWithValue("@cena", cena);
+                    command.Parameters.AddWithValue("@data", DateTime.Today.ToString("yyyy-MM-dd"));
+                    command.Parameters.AddWithValue("@status", "Przyjete");
+                    command.Parameters.AddWithValue("@batchNumber", batchNumber);
+                    command.ExecuteNonQuery();
+                }
+                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand command = connection.CreateCommand();
+                    command.CommandText = "UPDATE Przedmioty SET Ilosc = Ilosc + @ilosc WHERE Id = @przedmiotId";
+                    command.Parameters.AddWithValue("@ilosc", ilosc);
+                    command.Parameters.AddWithValue("@przedmiotId", wybraneId);
+                    command.ExecuteNonQuery();
+                }
+                Console.WriteLine("✅ Przyjęto dostawę do magazynu.");
             }
         }
     }
