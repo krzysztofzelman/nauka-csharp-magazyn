@@ -456,3 +456,38 @@ W bloku zapisu było ~10 literówek (`Parametrs`, `AddWythValute`, `ExecuteNonQw
 
 - ✅ **PZ KOMPLETNE** (opcja 6): lista → wybór → dane → INSERT + UPDATE → test na żywo ✅
 - ⏭️ **Następne:** **WZ (opcja 7) — logika FIFO** — wydaj od najstarszej partii (ORDER BY Id ASC), wyzerowana → Status="Wydane", za mało towaru → komunikat. Rozmiar: największy pojedynczy kawałek logiki (pętla „zjada" partie po kolei), ale do podziału na 3–4 małe kroki.
+
+---
+
+# DZIEŃ 18 (2026-08-26) — NU1903 naprawione + quiz powtórkowy ✅
+
+## 1. NU1903 — luka w bibliotece SQLite (fix)
+
+- **Diagnoza:** tylko konsola Magazyn miała podatny pakiet — `Microsoft.Data.Sqlite 10.0.10` ciągnie **SQLitePCLRaw 2.1.11** (luka GHSA-2m69-gcr7-jv3q, wysoka). API miało już 10.0.11 → czyste.
+- **Łańcuch warstw:** Twój kod → `Microsoft.Data.Sqlite` (to wpisujesz w kodzie) → `SQLitePCLRaw` (łącznik .NET↔C) → `e_sqlite3` (silnik SQLite, napisany w C) → `magazyn.db`
+- **Fix:** `dotnet add package Microsoft.Data.Sqlite --version 10.0.11` → SQLitePCLRaw 2.1.12
+- **Nowe narzędzie:** `dotnet list package --vulnerable --include-transitive` = skaner podatności (sprawdza też pakiety „ukryte", przechodnie)
+- Commit `1f737ea` push, test na żywo OK (lista czyta się normalnie, Wąż 17 na miejscu)
+
+## 2. Quiz powtórkowy z PZ (3/5)
+
+- ✅ UPDATE `Ilosc = Ilosc + @ilosc` — podbicie stanu (stara + przyjęta)
+- ✅ Format daty ISO `yyyy-MM-dd`
+- 🟡 Lista `idy` = **tłumacz** numerków ekranowych na prawdziwe Id (dziury po usuniętych rekordach to tylko połowa odpowiedzi)
+- ❌ `@ilosc` = dziura wypełniana przez `AddWithValue` wartością od użytkownika
+- ❌ ExecuteNonQuery vs ExecuteReader
+
+## 3. „List do bazy" — model poleceń SQL ✅ (ZAŁAPANE)
+
+- `CommandText` = **zwykły string** (tekst w języku SQL, który rozumie baza)
+- `AddWithValue` = dorzucenie wartości do listu
+- `Execute*` = wysłanie listu
+- **INSERT/UPDATE/DELETE** = rozkaz → baza robi, NIE odpowiada → `ExecuteNonQuery`
+- **SELECT** = pytanie → baza oddaje TABELKĘ → `ExecuteReader` + `while (reader.Read())`
+- Zasada-1-zdanie: „czy baza ma coś **oddać**?" → Reader. „Czy ma coś **zrobić**?" → NonQuery.
+
+## Status (koniec dnia 18)
+
+- ✅ **NU1903 naprawione** (10.0.10 → 10.0.11), push, test na żywo ✅
+- ⏭️ **Następne:** **WZ (opcja 7) — logika FIFO** — czeka; dziury `@` i UPDATE wracają od razu (powtórka z dnia 17/18)
+
