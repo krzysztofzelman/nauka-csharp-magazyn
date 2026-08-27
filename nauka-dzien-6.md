@@ -491,3 +491,48 @@ W bloku zapisu było ~10 literówek (`Parametrs`, `AddWythValute`, `ExecuteNonQw
 - ✅ **NU1903 naprawione** (10.0.10 → 10.0.11), push, test na żywo ✅
 - ⏭️ **Następne:** **WZ (opcja 7) — logika FIFO** — czeka; dziury `@` i UPDATE wracają od razu (powtórka z dnia 17/18)
 
+---
+
+# DZIEŃ 19 (2026-08-27) — WZ FIFO: Krok 1 + 2a ✅ (Krok 2b jutro)
+
+## 1. FIFO — koncept dnia
+
+- **FIFO = First In, First Out** — „kto pierwszy wszedł, pierwszy wychodzi"
+- Najstarsza partia schodzi pierwsza → kluczowe SQL: `ORDER BY Id ASC` (Id rośnie z datą dodania)
+- Przykład: partie 10/5/7 szt, wydajesz 12 → znika cała najstarsza (10) + 2 z drugiej
+
+## 2. WZ — Krok 1: wybór artykułu + ilość ✅
+
+- Blok `else if (wybor == "7")` — **wzorzec z PZ** (lista artykułów z numerkami, `List<int> idy`, walidacja TryParse, pętla ilości) — 95% powtórka
+- Różnice vs PZ: brak ceny i numeru partii (w WZ to baza wybiera partie po FIFO)
+
+## 3. WZ — Krok 2a: pokaz partii w kolejności FIFO ✅
+
+```sql
+SELECT Id, Ilosc, BatchNumber FROM Partie
+WHERE PrzedmiotId = @przedmiotId AND Ilosc > 0
+ORDER BY Id ASC
+```
+
+- `AND Ilosc > 0` — pomiń partie puste (już Wydane)
+- `ORDER BY Id ASC` — najstarsza pierwsza = serce FIFO
+- Test na 2 partiach Węża ✅: `[TEST-0825] 5 szt` / `[TEST-0826] 10 szt` (0826 dodana przez PZ)
+
+## 4. Trim() — spacja w menu ✅
+
+- `string wybor = (Console.ReadLine() ?? "").Trim();`
+- `" 7"` (spacja) ≠ `"7"` — program porównuje tekst **znak po znaku**; Trim() zdejmuje spacje z początku/końca (w środku zostają)
+
+## 5. Incydenty dnia
+
+- **Build lock MSB3026/27:** stara instancja Magazyn.exe (drugi terminal) blokuje plik → `taskkill /F /PID <pid>`
+- **Przypadkowe usunięcie Grabie:** w menu usuwania numerki = lista przedmiotów (7 = Grabie), nie opcje menu → odzysk opcją 1 (Dodaj); Grabie dostało nowe Id (AUTOINCREMENT nie używa starych)
+- Partie NIE mają klucza obcego → usunięcie przedmiotu nie kasuje partii
+
+## Status (koniec dnia 19)
+
+- ✅ Krok 1 + 2a działają (test na żywo), Trim() dodany
+- ⏭️ **Jutro: Krok 2b** — pętla wydawania (kod czeka w czacie): `int pozostalo = ilosc;`, `while (reader.Read() && pozostalo > 0)`, partia cała → `Ilosc = 0, Status = 'Wydane'` / część → `Ilosc = Ilosc - @ile`, potem `UPDATE Przedmioty SET Ilosc = Ilosc - @ilosc`
+- ⏭️ Test FIFO: wydaj 4 z Węża → Wąż 17→13, TEST-0825 5→1 szt (najstarsza schodzi pierwsza!)
+
+

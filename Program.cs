@@ -45,7 +45,7 @@ while (true)
     Console.WriteLine("6 - PZ (przyjęcie dostawy)");
     Console.WriteLine("7 - WZ (wydanie towaru)");
     Console.WriteLine("8 - Wyjście");
-    string wybor = Console.ReadLine() ?? "";
+    string wybor = (Console.ReadLine() ?? "").Trim();
 
     if (wybor == "1")       // Dodawanie przedmiotu
     {
@@ -376,7 +376,65 @@ while (true)
 
     else if (wybor == "7")      // WZ — wydanie towaru (FIFO)
     {
-        // tu dalej: wydanie FIFO — najstarsze partie schodzą pierwsze
+        List<int> idy = new List<int>();
+        using (SqliteConnection connection = new SqliteConnection(connectionString))
+        {
+            connection.Open();
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT Id, Nazwa FROM Przedmioty";
+            SqliteDataReader reader = command.ExecuteReader();
+            int numer = 1;
+            Console.WriteLine("=== Wybierz artykuł do wydania ===");
+            while (reader.Read())
+            {
+                idy.Add(Convert.ToInt32(reader["Id"]));
+                Console.WriteLine($"{numer}. {reader["Nazwa"]}");
+                numer++;
+            }
+        }
+        if (idy.Count == 0)
+        {
+            Console.WriteLine("📭 Magazyn jest pusty, nie można wydać towaru.");
+        }
+        else
+        {
+            Console.WriteLine("Podaj numer artykułu:");
+            string wyborArtykulu = Console.ReadLine() ?? "";
+            int indeks;
+            if (!int.TryParse(wyborArtykulu, out indeks) || indeks < 1 || indeks > idy.Count)
+            {
+                Console.WriteLine("❌ Nieprawidłowy numer!");
+            }
+            else
+            {
+                indeks--;
+                int wybraneId = idy[indeks];
+
+                Console.WriteLine("Podaj ilość do wydania:");
+                string iloscTekst = Console.ReadLine() ?? "";
+                int ilosc;
+                while (!int.TryParse(iloscTekst, out ilosc) || ilosc <= 0)
+                {
+                    Console.WriteLine("❌ Nieprawidłowa liczba! podaj ilość jeszcze raz:");
+                    iloscTekst = Console.ReadLine() ?? "";
+                }
+
+                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand command = connection.CreateCommand();
+                    command.CommandText = "SELECT Id, Ilosc, BatchNumber FROM Partie WHERE PrzedmiotId = @przedmiotId AND Ilosc > 0 ORDER BY Id ASC";
+                    command.Parameters.AddWithValue("@przedmiotId", wybraneId);
+                    SqliteDataReader reader = command.ExecuteReader();
+                    Console.WriteLine("Partie (najstarsza pierwsza):");
+                    while (reader.Read())
+                    {
+                        Console.WriteLine($"  [{reader["BatchNumber"]}] {reader["Ilosc"]} szt");
+                    }
+                }
+                
+            }
+        }
     }
 
     else if (wybor == "8")      // Wyjście z programu
