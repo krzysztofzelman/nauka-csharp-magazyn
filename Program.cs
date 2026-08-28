@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Microsoft.Data.Sqlite;
 
-string connectionString = "Data Source=magazyn.db";
+string connectionString = "Data Source=D:\\Dane\\Projekty\\NaukaCSharp\\magazyn.db";
 using (SqliteConnection connection = new SqliteConnection(connectionString))
 {
     connection.Open();
