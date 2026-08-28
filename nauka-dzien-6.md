@@ -586,4 +586,16 @@ ORDER BY Id ASC
 - ⚠️ Lekcja dnia: wklejka 2b-3 wpadła **w środek else** (widać po wcięciach) — przeniesiona za blok wydawania
 - ⏭️ **JUTRO (Dzień 21): TEST FIFO na żywo** — menu 7 → Wąż → 4 → „Wydaję z [TEST-0825]..." → ✅ → opcja 2: Wąż 13 (17−4) → opcja 7: TEST-0825 = 1 szt / TEST-0826 = 10 szt (4 wzięte z NAJSTARSZEJ!) → ewentualnie test „za mało towaru" + „0 - anuluj" w menu usuwania
 
+## 4. Baza przeniesiona do MagazynBaza (dopisek po sesji)
+
+- **Nowa lokalizacja bazy:** `D:\Dane\Projekty\NaukaCSharp\MagazynBaza\magazyn.db` — dedykowany folder (user: „ładniej by było w jakimś folderze")
+- **Czemu:** baza jest wspólna dla konsoli, API i strony → nie powinna siedzieć w folderze żadnego z nich (gdyby Magazyn zniknął, dane zostają)
+- **Co się zmieniło:**
+  - konsola: `Program.cs` → `string connectionString = "Data Source=D:\\Dane\\Projekty\\NaukaCSharp\\MagazynBaza\\magazyn.db";`
+  - API: `MagazynApi\appsettings.json` → `"MagazynDb": "Data Source=D:\\...\\MagazynBaza\\magazyn.db"`
+  - strona (MagazynWeb): **nic** — czyta przez API
+- **Test na żywo ✅:** opcja 2 pokazała wszystkie przedmioty z nowej lokalizacji (Wąż ogrodowy 27 szt!)
+- **Uwaga:** ścieżka z `\\` = w stringu C# backslash musi być podwojony (ucieczka)
+- Commity: konsola `b7f8889`, API `3511bda` (push na GitHub)
+
 
