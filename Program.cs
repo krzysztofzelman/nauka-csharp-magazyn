@@ -45,43 +45,43 @@ while (true)
     Console.WriteLine("6 - PZ (przyjęcie dostawy)");
     Console.WriteLine("7 - WZ (wydanie towaru)");
     Console.WriteLine("8 - Wyjście");
-    string wybor = (Console.ReadLine() ?? "").Trim();
+    string choice = (Console.ReadLine() ?? "").Trim();
 
-    if (wybor == "1")       // Dodawanie przedmiotu
+    if (choice == "1")       // Dodawanie przedmiotu
     {
         Console.WriteLine("Podaj nazwę przedmiotu:)");
-        string nazwa = Console.ReadLine() ?? "";
+        string name = Console.ReadLine() ?? "";
 
         Console.WriteLine("Podaj ilość");
-        string iloscTekst = Console.ReadLine() ?? "";
-        int ilosc;
-        while (!int.TryParse(iloscTekst, out ilosc) || ilosc <= 0)
+        string quantityText = Console.ReadLine() ?? "";
+        int quantity;
+        while (!int.TryParse(quantityText, out quantity) || quantity <= 0)
         {
             Console.WriteLine("❌ Nieprawidłowa liczba! podaj ilość jeszcze raz:");
-            iloscTekst = Console.ReadLine() ?? "";
+            quantityText = Console.ReadLine() ?? "";
         }
 
         Console.WriteLine("Podaj cenę za sztukę");
-        string cenaTekst = Console.ReadLine() ?? "";
-        decimal cena;
-        while (!decimal.TryParse(cenaTekst, out cena) || cena <= 0)
+        string priceText = Console.ReadLine() ?? "";
+        decimal price;
+        while (!decimal.TryParse(priceText, out price) || price <= 0)
         {
             Console.WriteLine("❌ Nieprawidłowa liczba! podaj cenę jeszcze raz:");
-            cenaTekst = Console.ReadLine() ?? "";
+            priceText = Console.ReadLine() ?? "";
         }
 
         using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
             connection.Open();
             SqliteCommand command = connection.CreateCommand();
-            command.CommandText = "INSERT INTO Przedmioty (Nazwa, Ilosc, Cena) VALUES (@nazwa, @ilosc, @cena)";
-            command.Parameters.AddWithValue("@nazwa", nazwa);
-            command.Parameters.AddWithValue("@ilosc", ilosc);
-            command.Parameters.AddWithValue("@cena", cena);
+            command.CommandText = "INSERT INTO Przedmioty (Nazwa, Ilosc, Cena) VALUES (@name, @quantity, @price)";
+            command.Parameters.AddWithValue("@name", name);
+            command.Parameters.AddWithValue("@quantity", quantity);
+            command.Parameters.AddWithValue("@price", price);
             command.ExecuteNonQuery();
         }
     }
-    else if (wybor == "2")      // Wyświetlanie wszystkich przedmiotów
+    else if (choice == "2")      // Wyświetlanie wszystkich przedmiotów
     {
        using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
@@ -90,137 +90,137 @@ while (true)
             command.CommandText = "SELECT Nazwa, Ilosc, Cena FROM Przedmioty";
             SqliteDataReader reader = command.ExecuteReader();
             Console.WriteLine("==== Zawartość magazynu ====");
-            bool pokazanoCos = false;
+            bool anythingShown = false;
             while (reader.Read())
             {
-                pokazanoCos = true;
+                anythingShown = true;
                 Console.WriteLine($"- {reader["Nazwa"]} | Ilość: {reader["Ilosc"]} | Cena: {reader["Cena"]} zł");
             }
-            if (!pokazanoCos)
+            if (!anythingShown)
             {
                 Console.WriteLine("📭 Magazyn jest pusty.");
             }
         }
     }
-    else if (wybor == "3")      // Edytowanie przedmiotu
+    else if (choice == "3")      // Edytowanie przedmiotu
     {
-        List<int> idy = new List<int>();
+        List<int> ids = new List<int>();
         using (SqliteConnection  connection = new SqliteConnection(connectionString))
         {
             connection.Open();
             SqliteCommand command = connection.CreateCommand();
             command.CommandText = "SELECT Id, Nazwa, Ilosc, Cena FROM Przedmioty";
             SqliteDataReader reader = command.ExecuteReader();
-            int numer = 1;
+            int number = 1;
             Console.WriteLine("=== Wybierz przedmiot do edycji ===");
             while (reader.Read())
             {
-                idy.Add(Convert.ToInt32(reader["Id"]));
-                Console.WriteLine($"{numer}. {reader["Nazwa"]} | {reader["Ilosc"]} szt. | {reader["Cena"]} zł");
-                numer++;
+                ids.Add(Convert.ToInt32(reader["Id"]));
+                Console.WriteLine($"{number}. {reader["Nazwa"]} | {reader["Ilosc"]} szt. | {reader["Cena"]} zł");
+                number++;
             }
         }
-        if (idy.Count == 0)
+        if (ids.Count == 0)
         {
             Console.WriteLine("📭 Magazyn jest pusty, nie ma czego edytować.");
         }
         else
         {
             Console.WriteLine("Podaj numer przedmiotu do edycji:");
-            string wyborEdycji = Console.ReadLine() ?? "";
-            int indeks;
-            if (!int.TryParse(wyborEdycji, out indeks) || indeks < 1 || indeks > idy.Count)
+            string editChoice = Console.ReadLine() ?? "";
+            int index;
+            if (!int.TryParse(editChoice, out index) || index < 1 || index > ids.Count)
             {
                 Console.WriteLine("❌ Nieprawidłowy numer!");
             }
             else
             {
-                indeks--;
-                int wybraneId = idy[indeks];
+                index--;
+                int selectedId = ids[index];
 
-                Item edytowany;
+                Item editedItem;
                 using (SqliteConnection connection = new SqliteConnection(connectionString))
                 {
                     connection.Open();
                     SqliteCommand command = connection.CreateCommand();
                     command.CommandText = "SELECT Nazwa, Ilosc, Cena FROM Przedmioty WHERE Id = @id";
-                    command.Parameters.AddWithValue("@id", wybraneId);
+                    command.Parameters.AddWithValue("@id", selectedId);
                     SqliteDataReader reader = command.ExecuteReader();
                     reader.Read();
-                    edytowany = new Item(
+                    editedItem = new Item(
                         Convert.ToString(reader["Nazwa"]) ?? "",
                         Convert.ToInt32(reader["Ilosc"]),
                         Convert.ToDecimal(reader["Cena"]));
                 }
 
                 Console.WriteLine("Podaj nową nazwę (popraw i wciśnij Enter):");
-                Console.Write(edytowany.Name);
-                string nowaNazwa = edytowany.Name;
+                Console.Write(editedItem.Name);
+                string newName = editedItem.Name;
                 while (true)
                 {
-                    ConsoleKeyInfo klawisz = Console.ReadKey(true);
-                    if (klawisz.Key == ConsoleKey.Enter)
+                    ConsoleKeyInfo key = Console.ReadKey(true);
+                    if (key.Key == ConsoleKey.Enter)
                     {
                         break;
                     }
-                    else if (klawisz.Key == ConsoleKey.Backspace && nowaNazwa.Length > 0)
+                    else if (key.Key == ConsoleKey.Backspace && newName.Length > 0)
                     {
-                        nowaNazwa = nowaNazwa.Substring(0, nowaNazwa.Length - 1);
+                        newName = newName.Substring(0, newName.Length - 1);
                         Console.Write("\b \b");
                     }
-                    else if (klawisz.KeyChar != '\0')
+                    else if (key.KeyChar != '\0')
                     {
-                        nowaNazwa += klawisz.KeyChar;
-                        Console.Write(klawisz.KeyChar);
+                        newName += key.KeyChar;
+                        Console.Write(key.KeyChar);
                     }
                 }
                 Console.WriteLine();
-                if (nowaNazwa != "")
+                if (newName != "")
                 {
-                    edytowany.Name = nowaNazwa;
+                    editedItem.Name = newName;
                 }
 
-                Console.WriteLine($"Podaj nową ilość (Enter = zostaw {edytowany.Quantity}):");
-                string nowaIloscTekst = Console.ReadLine() ?? "";
-                if (nowaIloscTekst != "")
+                Console.WriteLine($"Podaj nową ilość (Enter = zostaw {editedItem.Quantity}):");
+                string newQuantityText = Console.ReadLine() ?? "";
+                if (newQuantityText != "")
                 {
-                    int nowaIlosc;
-                    while (!int.TryParse(nowaIloscTekst, out nowaIlosc) || nowaIlosc <= 0)
+                    int newQuantity;
+                    while (!int.TryParse(newQuantityText, out newQuantity) || newQuantity <= 0)
                     {
                         Console.WriteLine("❌ Nieprawidłowa liczba! Podaj ilość jeszcze raz:");
-                        nowaIloscTekst = Console.ReadLine() ?? "";
+                        newQuantityText = Console.ReadLine() ?? "";
                     }
-                    edytowany.Quantity = nowaIlosc;
+                    editedItem.Quantity = newQuantity;
                 }
 
-                Console.WriteLine($"Podaj nową cenę (Enter = zostaw {edytowany.Price}):");
-                string nowaCenaTekst = Console.ReadLine() ?? "";
-                if (nowaCenaTekst != "")
+                Console.WriteLine($"Podaj nową cenę (Enter = zostaw {editedItem.Price}):");
+                string newPriceText = Console.ReadLine() ?? "";
+                if (newPriceText != "")
                 {
-                    decimal nowaCena;
-                    while (!decimal.TryParse(nowaCenaTekst, out nowaCena) || nowaCena <= 0)
+                    decimal newPrice;
+                    while (!decimal.TryParse(newPriceText, out newPrice) || newPrice <= 0)
                     {
                         Console.WriteLine("❌ Nieprawidłowa liczba! Podaj cenę jeszcze raz:");
-                        nowaCenaTekst = Console.ReadLine() ?? "";
+                        newPriceText = Console.ReadLine() ?? "";
                     }
-                    edytowany.Price = nowaCena;
+                    editedItem.Price = newPrice;
                 }
 
                 using (SqliteConnection connection = new SqliteConnection(connectionString))
                 {
                     connection.Open();
                     SqliteCommand command = connection.CreateCommand();
-                    command.CommandText = "UPDATE Przedmioty SET Nazwa = @nazwa, Ilosc = @ilosc, Cena = @cena WHERE Id = @id";
-                    command.Parameters.AddWithValue("@nazwa", edytowany.Name);
-                    command.Parameters.AddWithValue("@ilosc", edytowany.Quantity);
-                    command.Parameters.AddWithValue("@cena", edytowany.Price);
-                    command.Parameters.AddWithValue("@id", wybraneId);
+                    command.CommandText = "UPDATE Przedmioty SET Nazwa = @name, Ilosc = @quantity, Cena = @price WHERE Id = @id";
+                    command.Parameters.AddWithValue("@name", editedItem.Name);
+                    command.Parameters.AddWithValue("@quantity", editedItem.Quantity);
+                    command.Parameters.AddWithValue("@price", editedItem.Price);
+                    command.Parameters.AddWithValue("@id", selectedId);
                     command.ExecuteNonQuery();
                 }
             }
         }
     }
-    else if (wybor == "4")      // Usuwanie przedmiotu
+    else if (choice == "4")      // Usuwanie przedmiotu
     {
         using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
@@ -228,19 +228,19 @@ while (true)
             SqliteCommand command = connection.CreateCommand();  
             command.CommandText = "SELECT Id, Nazwa, Ilosc, Cena FROM Przedmioty"; 
             SqliteDataReader reader = command.ExecuteReader();  
-            List<int> idy = new List<int>();    
-            List<string> nazwy = new List<string>();    
-            int numer = 1;  
+            List<int> ids = new List<int>();    
+            List<string> names = new List<string>();    
+            int number = 1;  
             Console.WriteLine("=== Wybierz przedmiot do usunięcia ===");    
             while (reader.Read()) 
             {
-                idy.Add(Convert.ToInt32(reader["Id"])); 
-                nazwy.Add(Convert.ToString(reader["Nazwa"]) ?? ""); 
-                Console.WriteLine($"{numer}. {reader["Nazwa"]} | {reader["Ilosc"]} szt. | {reader["Cena"]} zł" 
+                ids.Add(Convert.ToInt32(reader["Id"])); 
+                names.Add(Convert.ToString(reader["Nazwa"]) ?? ""); 
+                Console.WriteLine($"{number}. {reader["Nazwa"]} | {reader["Ilosc"]} szt. | {reader["Cena"]} zł" 
                     ); 
-                numer++;
+                number++;
             }
-            if (idy.Count == 0)
+            if (ids.Count == 0)
             {
                 Console.WriteLine("📭 Magazyn jest pusty, nie ma czego usuwać.");
 
@@ -248,28 +248,28 @@ while (true)
             else 
             {
                 Console.WriteLine("Podaj numer przedmiotu do usunięcia:"); 
-                string wyborUsuniecia = Console.ReadLine() ?? ""; 
-                int indeks; 
-                if (!int.TryParse(wyborUsuniecia, out indeks) || indeks < 1 || indeks > idy.Count)
+                string deleteChoice = Console.ReadLine() ?? ""; 
+                int index; 
+                if (!int.TryParse(deleteChoice, out index) || index < 1 || index > ids.Count)
                 {
                     Console.WriteLine("❌ Nieprawidłowy numer!");
                 }
                 else 
                 {
-                    indeks--; 
-                    int id = idy[indeks];
-                    SqliteCommand komendaUsun = connection.CreateCommand();
-                    komendaUsun.CommandText = "DELETE FROM Przedmioty WHERE Id = @id";
-                    komendaUsun.Parameters.AddWithValue("@id", id);
-                    komendaUsun.ExecuteNonQuery();
-                    Console.WriteLine($"✅ Usunięto przedmiot: {nazwy[indeks]}");
+                    index--; 
+                    int id = ids[index];
+                    SqliteCommand deleteCommand = connection.CreateCommand();
+                    deleteCommand.CommandText = "DELETE FROM Przedmioty WHERE Id = @id";
+                    deleteCommand.Parameters.AddWithValue("@id", id);
+                    deleteCommand.ExecuteNonQuery();
+                    Console.WriteLine($"✅ Usunięto przedmiot: {names[index]}");
                     
                 }
             }
         }
     }
 
-    else if (wybor == "5")      // Obliczanie wartości magazynu
+    else if (choice == "5")      // Obliczanie wartości magazynu
     {
         using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
@@ -284,63 +284,63 @@ while (true)
             }
             else
             {
-                decimal suma = Convert.ToDecimal(reader[0]);
-                Console.WriteLine($"💰 Wartość magazynu: {suma} zł");
+                decimal total = Convert.ToDecimal(reader[0]);
+                Console.WriteLine($"💰 Wartość magazynu: {total} zł");
             }
         }
     }
-    else if  (wybor == "6")         // PZ Przyjęcie dostawy
+    else if  (choice == "6")         // PZ Przyjęcie dostawy
     {
-        List<int> idy = new List<int>();
+        List<int> ids = new List<int>();
         using (SqliteConnection connection = new SqliteConnection (connectionString))
         {
             connection.Open();
             SqliteCommand command = connection.CreateCommand();
             command.CommandText = "SELECT Id, Nazwa FROM Przedmioty";
             SqliteDataReader reader = command.ExecuteReader();
-            int numer = 1;
+            int number = 1;
             Console.WriteLine("=== Wybierz artykuł dla dostawy ===");
             while (reader.Read())
             {
-                idy.Add(Convert.ToInt32(reader["Id"]));
-                Console.WriteLine($"{ numer}. { reader["Nazwa"]}");
-                numer++;
+                ids.Add(Convert.ToInt32(reader["Id"]));
+                Console.WriteLine($"{ number}. { reader["Nazwa"]}");
+                number++;
             }
         }
-        if (idy.Count == 0)
+        if (ids.Count == 0)
         {
             Console.WriteLine("📭 Magazyn jest pusty, nie można przyjąć dostawy.");
         }
         else
         {
             Console.WriteLine("Podaj numer artykułu:");
-            string wyborArtykulu = Console.ReadLine() ?? "";
-            int indeks;
-            if (!int.TryParse(wyborArtykulu, out indeks) || indeks < 1 || indeks > idy.Count)
+            string articleChoice = Console.ReadLine() ?? "";
+            int index;
+            if (!int.TryParse(articleChoice, out index) || index < 1 || index > ids.Count)
             {
                 Console.WriteLine("❌ Nieprawidłowy numer!");
             }
             else
             {
-                indeks--;
-                int wybraneId = idy[indeks];
+                index--;
+                int selectedId = ids[index];
 
                 Console.WriteLine("Podaj ilość przyjętych sztuk:");
-                string iloscTekst = Console.ReadLine() ?? "";
-                int ilosc;
-                while (!int.TryParse(iloscTekst, out ilosc) || ilosc <= 0)
+                string quantityText = Console.ReadLine() ?? "";
+                int quantity;
+                while (!int.TryParse(quantityText, out quantity) || quantity <= 0)
                 {
                     Console.WriteLine("❌ Nieprawidłowa liczba! podaj ilość jeszcze raz:");
-                    iloscTekst = Console.ReadLine() ?? "";
+                    quantityText = Console.ReadLine() ?? "";
                 }
 
                 Console.WriteLine("Podaj cenę za sztukę:");
-                string cenaTekst = Console.ReadLine() ?? "";
-                decimal cena;
-                while (!decimal.TryParse(cenaTekst, out cena) || cena <= 0)
+                string priceText = Console.ReadLine() ?? "";
+                decimal price;
+                while (!decimal.TryParse(priceText, out price) || price <= 0)
                 {
                     Console.WriteLine("❌ Nieprawidłowa liczba! podaj cenę jeszcze raz:");
-                    cenaTekst = Console.ReadLine() ?? "";
+                    priceText = Console.ReadLine() ?? "";
                 }
 
                 Console.WriteLine("Podaj numer partii (np. KOSIARKA-0822):");
@@ -350,11 +350,11 @@ while (true)
                 {
                     connection.Open();
                     SqliteCommand command = connection.CreateCommand();
-                    command.CommandText = "INSERT INTO Partie (PrzedmiotId, Ilosc, Cena, Data, Status, BatchNumber) VALUES (@przedmiotId, @ilosc, @cena, @data, @status, @batchNumber)";
-                    command.Parameters.AddWithValue("@przedmiotId", wybraneId);
-                    command.Parameters.AddWithValue("@ilosc", ilosc);
-                    command.Parameters.AddWithValue("@cena", cena);
-                    command.Parameters.AddWithValue("@data", DateTime.Today.ToString("yyyy-MM-dd"));
+                    command.CommandText = "INSERT INTO Partie (PrzedmiotId, Ilosc, Cena, Data, Status, BatchNumber) VALUES (@itemId, @quantity, @price, @date, @status, @batchNumber)";
+                    command.Parameters.AddWithValue("@itemId", selectedId);
+                    command.Parameters.AddWithValue("@quantity", quantity);
+                    command.Parameters.AddWithValue("@price", price);
+                    command.Parameters.AddWithValue("@date", DateTime.Today.ToString("yyyy-MM-dd"));
                     command.Parameters.AddWithValue("@status", "Przyjete");
                     command.Parameters.AddWithValue("@batchNumber", batchNumber);
                     command.ExecuteNonQuery();
@@ -363,9 +363,9 @@ while (true)
                 {
                     connection.Open();
                     SqliteCommand command = connection.CreateCommand();
-                    command.CommandText = "UPDATE Przedmioty SET Ilosc = Ilosc + @ilosc WHERE Id = @przedmiotId";
-                    command.Parameters.AddWithValue("@ilosc", ilosc);
-                    command.Parameters.AddWithValue("@przedmiotId", wybraneId);
+                    command.CommandText = "UPDATE Przedmioty SET Ilosc = Ilosc + @quantity WHERE Id = @itemId";
+                    command.Parameters.AddWithValue("@quantity", quantity);
+                    command.Parameters.AddWithValue("@itemId", selectedId);
                     command.ExecuteNonQuery();
                 }
                 Console.WriteLine("✅ Przyjęto dostawę do magazynu.");
@@ -374,70 +374,97 @@ while (true)
     }
 
 
-    else if (wybor == "7")      // WZ — wydanie towaru (FIFO)
+    else if (choice == "7")      // WZ — wydanie towaru (FIFO)
     {
-        List<int> idy = new List<int>();
+        List<int> ids = new List<int>();
         using (SqliteConnection connection = new SqliteConnection(connectionString))
         {
             connection.Open();
             SqliteCommand command = connection.CreateCommand();
             command.CommandText = "SELECT Id, Nazwa FROM Przedmioty";
             SqliteDataReader reader = command.ExecuteReader();
-            int numer = 1;
+            int number = 1;
             Console.WriteLine("=== Wybierz artykuł do wydania ===");
             while (reader.Read())
             {
-                idy.Add(Convert.ToInt32(reader["Id"]));
-                Console.WriteLine($"{numer}. {reader["Nazwa"]}");
-                numer++;
+                ids.Add(Convert.ToInt32(reader["Id"]));
+                Console.WriteLine($"{number}. {reader["Nazwa"]}");
+                number++;
             }
         }
-        if (idy.Count == 0)
+        if (ids.Count == 0) 
         {
             Console.WriteLine("📭 Magazyn jest pusty, nie można wydać towaru.");
         }
         else
         {
             Console.WriteLine("Podaj numer artykułu:");
-            string wyborArtykulu = Console.ReadLine() ?? "";
-            int indeks;
-            if (!int.TryParse(wyborArtykulu, out indeks) || indeks < 1 || indeks > idy.Count)
+            string articleChoice = Console.ReadLine() ?? "";
+            int index;
+            if (!int.TryParse(articleChoice, out index) || index < 1 || index > ids.Count)
             {
                 Console.WriteLine("❌ Nieprawidłowy numer!");
             }
-            else
+            else 
             {
-                indeks--;
-                int wybraneId = idy[indeks];
+                index--;
+                int selectedId = ids[index];
 
                 Console.WriteLine("Podaj ilość do wydania:");
-                string iloscTekst = Console.ReadLine() ?? "";
-                int ilosc;
-                while (!int.TryParse(iloscTekst, out ilosc) || ilosc <= 0)
+                string quantityText = Console.ReadLine() ?? "";
+                int quantity;
+                while (!int.TryParse(quantityText, out quantity) || quantity <= 0)
                 {
                     Console.WriteLine("❌ Nieprawidłowa liczba! podaj ilość jeszcze raz:");
-                    iloscTekst = Console.ReadLine() ?? "";
+                    quantityText = Console.ReadLine() ?? "";
                 }
 
                 using (SqliteConnection connection = new SqliteConnection(connectionString))
                 {
                     connection.Open();
                     SqliteCommand command = connection.CreateCommand();
-                    command.CommandText = "SELECT Id, Ilosc, BatchNumber FROM Partie WHERE PrzedmiotId = @przedmiotId AND Ilosc > 0 ORDER BY Id ASC";
-                    command.Parameters.AddWithValue("@przedmiotId", wybraneId);
+                    command.CommandText = "SELECT Id, Ilosc, BatchNumber FROM Partie WHERE PrzedmiotId = @itemId AND Ilosc > 0 ORDER BY Id ASC";
+                    command.Parameters.AddWithValue("@itemId", selectedId);
                     SqliteDataReader reader = command.ExecuteReader();
                     Console.WriteLine("Partie (najstarsza pierwsza):");
                     while (reader.Read())
                     {
-                        Console.WriteLine($"  [{reader["BatchNumber"]}] {reader["Ilosc"]} szt");
+                        Console.WriteLine($"  [{reader["BatchNumber"]}] {reader["Ilosc"]} szt");    
                     }
                 }
-                
+                int remaining = quantity;
+                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand command = connection.CreateCommand();
+                    command.CommandText = "SELECT Id, Ilosc, BatchNumber FROM Partie WHERE PrzedmiotId = @itemId AND Ilosc > 0 ORDER BY Id ASC";
+                    command.Parameters.AddWithValue("@itemId", selectedId);
+                    SqliteDataReader reader = command.ExecuteReader();
+                    while (reader.Read() && remaining > 0)
+                    {
+                        int partId = Convert.ToInt32(reader["Id"]);
+                        int inBatch = Convert.ToInt32(reader["Ilosc"]);
+                        Console.WriteLine($"Wydaję z [{reader["BatchNumber"]}]...");
+                        if (inBatch <= remaining)
+                        {
+                            using (SqliteConnection conn2 = new SqliteConnection(connectionString))
+                            {
+                                conn2.Open();
+                                SqliteCommand cmd2 = conn2.CreateCommand();
+                                cmd2.CommandText = "UPDATE Partie SET Ilosc = 0, Status = 'Wydane' WHERE Id = @partId";
+                                cmd2.Parameters.AddWithValue("@partId", partId);
+                                cmd2.ExecuteNonQuery();
+                            }
+                            remaining -= inBatch;
+                        }
+                    }
+                }
+
             }
         }
     }
 
-    else if (wybor == "8")      // Wyjście z programu
+    else if (choice == "8")      // Wyjście z programu
     {
         break;
     }

@@ -535,4 +535,53 @@ ORDER BY Id ASC
 - ⏭️ **Jutro: Krok 2b** — pętla wydawania (kod czeka w czacie): `int pozostalo = ilosc;`, `while (reader.Read() && pozostalo > 0)`, partia cała → `Ilosc = 0, Status = 'Wydane'` / część → `Ilosc = Ilosc - @ile`, potem `UPDATE Przedmioty SET Ilosc = Ilosc - @ilosc`
 - ⏭️ Test FIFO: wydaj 4 z Węża → Wąż 17→13, TEST-0825 5→1 szt (najstarsza schodzi pierwsza!)
 
+---
+
+# DZIEŃ 20 (2026-08-28) — Zmienne po angielsku (PRO) ✅ + WZ Krok 2a
+
+## 1. Decyzja dnia: kod po angielsku
+
+- **Zmienne w kodzie → angielskie** (standard w pracy zawodowej; nauka angielskiego przez kod)
+- **Kolumny bazy zostają polskie** (`Ilosc`, `PrzedmiotId`...) — ta sama baza `magazyn.db` działa z API (MagazynApi) i stroną (MagazynWeb); zmiana nazw zepsułaby oba projekty
+- **Teksty na ekranie** (`Console.WriteLine`) też zostają po polsku — to UI dla użytkownika
+
+## 2. Tabela zamiany polskie → angielskie
+
+| Polskie | Angielskie | Znaczenie |
+|---|---|---|
+| `wybor` | `choice` | wybór z menu |
+| `ilosc` / `iloscTekst` | `quantity` / `quantityText` | ilość / tekst ilości |
+| `cena` / `cenaTekst` | `price` / `priceText` | cena / tekst ceny |
+| `nazwa` / `nazwy` | `name` / `names` | nazwa / nazwy |
+| `idy` | `ids` | lista Id |
+| `numer` | `number` | licznik na ekranie |
+| `indeks` | `index` | indeks na liście |
+| `wybraneId` | `selectedId` | wybrane Id |
+| `przedmiotId` (@) | `itemId` | Id artykułu |
+| `pozostalo` | `remaining` | ile zostało |
+| `edytowany` | `editedItem` | edytowany przedmiot |
+| `suma` | `total` | suma wartości |
+| `klawisz` | `key` | wciśnięty klawisz |
+| `pokazanoCos` | `anythingShown` | czy coś pokazano |
+| `komendaUsun` | `deleteCommand` | komenda usuwania |
+| `nowaNazwa` / `nowaIlosc` / `nowaCena` | `newName` / `newQuantity` / `newPrice` | nowa wartość |
+| `@data` | `@date` | dziura daty |
+
+⚠️ Lekcja: przy zamianie uważać na **teksty na ekranie** — `numer` → `number` złapało też „Podaj numer..." i trzeba było cofać (zamiana ma być tylko w zmiennych, nie w UI).
+
+## 3. WZ — Krok 2a (blok wydawania): początek wpisany
+
+- `int remaining = quantity;` — licznik: ile jeszcze trzeba wydać
+- `while (reader.Read() && remaining > 0)` — czytaj partie, dopóki coś zostało do wydania
+- `partId`, `inBatch` — numer partii i jej stan (nowe, angielskie nazwy)
+- `dotnet build` → **powodzenie ✅** (cały plik po przeróbce kompiluje się)
+
+## Status (dzień 20, w trakcie)
+
+- ✅ Zmienne po angielsku (cały Program.cs), build przechodzi
+- ✅ **Kawałek 2b-1 wpisany** — gałąź „cała partia schodzi": `conn2` (drugie połączenie), `UPDATE Partie SET Ilosc = 0, Status = 'Wydane' WHERE Id = @partId`, `remaining -= inBatch`; literówki usera poprawione (`AddWithValute("paritaId, partid")` → `AddWithValue("@partId", partId)`, `cmd2ExecuteNonQwerty()` → `cmd2.ExecuteNonQuery()`); build ✅, commit
+- ⏭️ **Kawałek 2b-2** — gałąź `else` (część partii): `UPDATE Partie SET Ilosc = Ilosc - @take`, `remaining = 0`
+- ⏭️ Po pętli: `UPDATE Przedmioty SET Ilosc = Ilosc - @quantity` + komunikat „✅ Wydano" / „❌ Za mało towaru"
+- ⏭️ Test FIFO na żywo (Wąż 17 → wydaj 4 → TEST-0825 5→1)
+
 
