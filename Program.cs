@@ -457,7 +457,39 @@ while (true)
                             }
                             remaining -= inBatch;
                         }
+                        else
+                        {
+                            using (SqliteConnection conn2 = new SqliteConnection(connectionString))
+                            {
+                                conn2.Open();
+                                SqliteCommand cmd2 = conn2.CreateCommand();
+                                cmd2.CommandText = "UPDATE Partie SET Ilosc = Ilosc - @take WHERE Id = @partId";
+                                cmd2.Parameters.AddWithValue("@take", remaining);
+                                cmd2.Parameters.AddWithValue("@partId", partId);
+                                cmd2.ExecuteNonQuery();
+                            }
+                            remaining = 0;
+                        }
                     }
+                }
+
+                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                {
+                    connection.Open();
+                    SqliteCommand command = connection.CreateCommand();
+                    command.CommandText = "UPDATE Przedmioty SET Ilosc = Ilosc - @quantity WHERE Id = @itemId";
+                    command.Parameters.AddWithValue("@quantity", quantity);
+                    command.Parameters.AddWithValue("@itemId", selectedId);
+                    command.ExecuteNonQuery();
+                }
+
+                if (remaining > 0)
+                {
+                    Console.WriteLine("❌ Za mało towaru w magazynie!");
+                }
+                else
+                {
+                    Console.WriteLine("✅ Wydano towar z magazynu.");
                 }
 
             }

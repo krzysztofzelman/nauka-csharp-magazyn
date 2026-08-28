@@ -576,12 +576,14 @@ ORDER BY Id ASC
 - `partId`, `inBatch` — numer partii i jej stan (nowe, angielskie nazwy)
 - `dotnet build` → **powodzenie ✅** (cały plik po przeróbce kompiluje się)
 
-## Status (dzień 20, w trakcie)
+## Status (koniec dnia 20)
 
-- ✅ Zmienne po angielsku (cały Program.cs), build przechodzi
-- ✅ **Kawałek 2b-1 wpisany** — gałąź „cała partia schodzi": `conn2` (drugie połączenie), `UPDATE Partie SET Ilosc = 0, Status = 'Wydane' WHERE Id = @partId`, `remaining -= inBatch`; literówki usera poprawione (`AddWithValute("paritaId, partid")` → `AddWithValue("@partId", partId)`, `cmd2ExecuteNonQwerty()` → `cmd2.ExecuteNonQuery()`); build ✅, commit
-- ⏭️ **Kawałek 2b-2** — gałąź `else` (część partii): `UPDATE Partie SET Ilosc = Ilosc - @take`, `remaining = 0`
-- ⏭️ Po pętli: `UPDATE Przedmioty SET Ilosc = Ilosc - @quantity` + komunikat „✅ Wydano" / „❌ Za mało towaru"
-- ⏭️ Test FIFO na żywo (Wąż 17 → wydaj 4 → TEST-0825 5→1)
+- ✅ Zmienne po angielsku (cały Program.cs) — build przechodzi
+- ✅ **WZ FIFO — kod KOMPLETNY** (Krok 1 + 2a + 2b):
+  - 2b-1: gałąź „cała partia schodzi" — `conn2`, `UPDATE Partie SET Ilosc = 0, Status = 'Wydane' WHERE Id = @partId`, `remaining -= inBatch`
+  - 2b-2: gałąź `else` (część partii) — `UPDATE Partie SET Ilosc = Ilosc - @take`, **`remaining = 0`** (⚠️ nie `-= inBatch` — wyszłoby −1!)
+  - 2b-3: po pętli — `UPDATE Przedmioty SET Ilosc = Ilosc - @quantity` + komunikat „✅ Wydano" / „❌ Za mało towaru"
+- ⚠️ Lekcja dnia: wklejka 2b-3 wpadła **w środek else** (widać po wcięciach) — przeniesiona za blok wydawania
+- ⏭️ **JUTRO (Dzień 21): TEST FIFO na żywo** — menu 7 → Wąż → 4 → „Wydaję z [TEST-0825]..." → ✅ → opcja 2: Wąż 13 (17−4) → opcja 7: TEST-0825 = 1 szt / TEST-0826 = 10 szt (4 wzięte z NAJSTARSZEJ!) → ewentualnie test „za mało towaru" + „0 - anuluj" w menu usuwania
 
 
