@@ -292,17 +292,19 @@ while (true)
     else if  (choice == "6")         // PZ Przyjęcie dostawy
     {
         List<int> ids = new List<int>();
+        List<decimal> prices = new List<decimal>();
         using (SqliteConnection connection = new SqliteConnection (connectionString))
         {
             connection.Open();
             SqliteCommand command = connection.CreateCommand();
-            command.CommandText = "SELECT Id, Nazwa FROM Przedmioty";
+            command.CommandText = "SELECT Id, Nazwa, Cena FROM Przedmioty";
             SqliteDataReader reader = command.ExecuteReader();
             int number = 1;
             Console.WriteLine("=== Wybierz artykuł dla dostawy ===");
             while (reader.Read())
             {
                 ids.Add(Convert.ToInt32(reader["Id"]));
+                prices.Add(Convert.ToDecimal(reader["Cena"]));
                 Console.WriteLine($"{ number}. { reader["Nazwa"]}");
                 number++;
             }
@@ -324,6 +326,7 @@ while (true)
             {
                 index--;
                 int selectedId = ids[index];
+                decimal oldPrice = prices[index];
 
                 Console.WriteLine("Podaj ilość przyjętych sztuk:");
                 string quantityText = Console.ReadLine() ?? "";
@@ -334,15 +337,17 @@ while (true)
                     quantityText = Console.ReadLine() ?? "";
                 }
 
-                Console.WriteLine("Podaj cenę za sztukę:");
+                Console.WriteLine($"Podaj cenę za sztukę (Enter = {oldPrice} zł):");
                 string priceText = Console.ReadLine() ?? "";
-                decimal price;
-                while (!decimal.TryParse(priceText, out price) || price <= 0)
+                decimal price = oldPrice;
+                if (priceText != "")
                 {
-                    Console.WriteLine("❌ Nieprawidłowa liczba! podaj cenę jeszcze raz:");
-                    priceText = Console.ReadLine() ?? "";
+                    while (!decimal.TryParse(priceText, out price) || price <= 0)
+                    {
+                        Console.WriteLine("❌ Nieprawidłowa liczba! podaj cenę jeszcze raz:");
+                        priceText = Console.ReadLine() ?? "";
+                    }
                 }
-
                 Console.WriteLine("Podaj numer partii (np. KOSIARKA-0822):");
                 string batchNumber = Console.ReadLine() ?? "";
             
@@ -433,6 +438,9 @@ while (true)
                     }
                 }
                 int remaining = quantity;
+                List<int> partIds = new List<int>();
+                List<int> batchSizes = new List<int>();
+                List<string> batchNumbers = new List<string>();
                 using (SqliteConnection connection = new SqliteConnection(connectionString))
                 {
                     connection.Open();
@@ -440,37 +448,48 @@ while (true)
                     command.CommandText = "SELECT Id, Ilosc, BatchNumber FROM Partie WHERE PrzedmiotId = @itemId AND Ilosc > 0 ORDER BY Id ASC";
                     command.Parameters.AddWithValue("@itemId", selectedId);
                     SqliteDataReader reader = command.ExecuteReader();
-                    while (reader.Read() && remaining > 0)
+                    while (reader.Read())
                     {
-                        int partId = Convert.ToInt32(reader["Id"]);
-                        int inBatch = Convert.ToInt32(reader["Ilosc"]);
-                        Console.WriteLine($"Wydaję z [{reader["BatchNumber"]}]...");
-                        if (inBatch <= remaining)
-                        {
-                            using (SqliteConnection conn2 = new SqliteConnection(connectionString))
-                            {
-                                conn2.Open();
-                                SqliteCommand cmd2 = conn2.CreateCommand();
-                                cmd2.CommandText = "UPDATE Partie SET Ilosc = 0, Status = 'Wydane' WHERE Id = @partId";
-                                cmd2.Parameters.AddWithValue("@partId", partId);
-                                cmd2.ExecuteNonQuery();
-                            }
-                            remaining -= inBatch;
-                        }
-                        else
-                        {
-                            using (SqliteConnection conn2 = new SqliteConnection(connectionString))
-                            {
-                                conn2.Open();
-                                SqliteCommand cmd2 = conn2.CreateCommand();
-                                cmd2.CommandText = "UPDATE Partie SET Ilosc = Ilosc - @take WHERE Id = @partId";
-                                cmd2.Parameters.AddWithValue("@take", remaining);
-                                cmd2.Parameters.AddWithValue("@partId", partId);
-                                cmd2.ExecuteNonQuery();
-                            }
-                            remaining = 0;
-                        }
+                        partIds.Add(Convert.ToInt32(reader["Id"]));
+                        batchSizes.Add(Convert.ToInt32(reader["Ilosc"]));
+                        batchNumbers.Add(Convert.ToString(reader["BatchNumber"]) ?? "");
+
                     }
+                }
+
+                int i = 0;
+                while (i < partIds.Count && remaining > 0)
+                {
+                    int partId = partIds[i];
+                    int inBatch = batchSizes[i];
+                    Console.WriteLine($"Wydaję z [{batchNumbers[i]}]...");
+                    if (inBatch <= remaining)
+                    {
+                        using (SqliteConnection conn2 = new SqliteConnection(connectionString))
+                        {
+                            conn2.Open();
+                            SqliteCommand cmd2 = conn2.CreateCommand();
+                            cmd2.CommandText = "UPDATE Partie SET Ilosc = 0, Status = 'Wydane' WHERE Id = @partId";
+                            cmd2.Parameters.AddWithValue("@partId", partId);
+                            cmd2.ExecuteNonQuery();
+                        }
+                        remaining -= inBatch;
+
+                    }
+                    else
+                    {
+                        using (SqliteConnection conn2 = new SqliteConnection(connectionString))
+                        {
+                            conn2.Open();
+                            SqliteCommand cmd2 = conn2.CreateCommand();
+                            cmd2.CommandText = "UPDATE Partie SET Ilosc = Ilosc - @take WHERE Id = @partId";
+                            cmd2.Parameters.AddWithValue("@take", remaining);
+                            cmd2.Parameters.AddWithValue("@partId", partId);
+                            cmd2.ExecuteNonQuery();
+                        }
+                        remaining = 0;
+                    }
+                    i++;
                 }
 
                 using (SqliteConnection connection = new SqliteConnection(connectionString))

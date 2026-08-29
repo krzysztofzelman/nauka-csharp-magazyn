@@ -598,4 +598,40 @@ ORDER BY Id ASC
 - **Uwaga:** ścieżka z `\\` = w stringu C# backslash musi być podwojony (ucieczka)
 - Commity: konsola `b7f8889`, API `3511bda` (push na GitHub)
 
+## DZIEŃ 21 (2026-08-29) — TEST FIFO + PZ "Enter = stara cena"
+
+### 1. TEST FIFO na żywo — BUG znaleziony i naprawiony ✅
+
+- **Pierwsza próba → crash:** `SQLite Error 5: 'database is locked'` na `cmd2.ExecuteNonQuery()` (linia 469)
+- **Co to znaczy:** baza zablokowana. `connection` (1.) CZYTAŁ partie (reader otwarty w środku pętli), a `conn2` (2.) chciał PISAĆ UPDATE w tym samym momencie. SQLite na to nie pozwala (jak czytający książkę, której ktoś chce dopisywać).
+- **LEKCJA (ważna):** **nie czytać i pisać naraz z dwóch połączeń.** Czytanie musi się SKOŃCZYĆ zanim zacznie się pisanie.
+- **Fix (wzorzec parking — znany z opcji 4!):** najpierw wrzuć wszystko do list, potem pisz:
+  - 3 listy: `partIds`, `batchSizes`, `batchNumbers` (parking)
+  - pierwsza pętla `while (reader.Read())` tylko wrzuca do list (`Add×3`)
+  - druga pętla `while (i < partIds.Count && remaining > 0)` chodzi po parkingu (przez `i` + `i++`) i dopiero TAM jest `conn2` z UPDATE
+- **Test po fixie ✅:** `Wydaję z [TEST-0825]...` → `✅ Wydano towar` → Wąż ogrodowy **27 → 23** (4 szt z NAJSTARSZEJ partii)
+
+### 2. PZ: "Enter = zostaw starą cenę" (funkcja na życzenie usera)
+
+- Cel: nie chcę podawać ceny co dostawę — Enter ma zostawić starą cenę artykułu
+- **3 zmiany (wzorce znane z opcji 3 i 4):**
+  - parking cen: `List<decimal> prices` + SELECT z `Cena` + `prices.Add(Convert.ToDecimal(reader["Cena"]))`
+  - `decimal oldPrice = prices[index];` (po `selectedId`)
+  - `decimal price = oldPrice;` + `if (priceText != "")` wokół walidacji → Enter (puste) = pomijamy pętlę, zostaje stara cena
+- komunikat pokazuje cenę: `$"Podaj cenę za sztukę (Enter = {oldPrice} zł):"` — `$` = wstawianie wartości, bez `$` program drukuje `{oldPrice}` dosłownie!
+- **Test ✅:** Enter przy cenie → od razu numer partii → `✅ Przyjęto dostawę` → Wąż 23 → 25
+
+### 3. Drobiazgi
+
+- **build lock (2. raz):** stara instancja Magazyn.exe (PID 7668) z innego terminala blokowała exe (MSB3026/27) → `tasklist` + `taskkill /F /PID 7668` → OK
+- **warning CS8604 naprawiony:** `Convert.ToString(...)` może zwrócić null → `?? ""` („jeśli null, wstaw pusty tekst")
+
+## Status (koniec dnia 21)
+
+- ✅ TEST FIFO na żywo — ZALICZONY (Wąż 27→23, wydanie z TEST-0825)
+- ✅ PZ: Enter = stara cena — ZALICZONY (Wąż 23→25, partia z ceną 45)
+- ✅ Błąd "database is locked" naprawiony (parking: czytaj do list, potem pisz)
+- ⏭️ NASTĘPNE: „0 - anuluj" w menu usuwania, zaległy quiz (@-dziury, Execute), dalej w API/frontend
+
+
 
