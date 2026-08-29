@@ -633,5 +633,54 @@ ORDER BY Id ASC
 - ✅ Błąd "database is locked" naprawiony (parking: czytaj do list, potem pisz)
 - ⏭️ NASTĘPNE: „0 - anuluj" w menu usuwania, zaległy quiz (@-dziury, Execute), dalej w API/frontend
 
+---
+
+# DZIEŃ 21 WIECZÓR (2026-08-29) — MagazynShared + nazwy C# po angielsku
+
+## 1. MagazynShared — wspólna szuflada na modele ✅
+
+- **Nowy projekt:** biblioteka klas `MagazynShared` (`dotnet new classlib`) — projekt bez ekranu, tylko klasy
+- **Problem:** `Batch.cs` i `Przedmiot.cs` istniały 2× (kopia w API, kopia w Web) — duplikacja
+- **Fix:** modele przeniesione DO `MagazynShared` (po 1 kopii), duplikaty skasowane; oba projekty dostały w `.csproj`:
+  ```xml
+  <ProjectReference Include="..\MagazynShared\MagazynShared.csproj" />
+  ```
+- `..\` = „wyjdź o folder wyżej" → **odnośnik do wspólnej szuflady**: klasy, których nie ma u siebie, kompilator szuka tam
+- Klasy bez namespace = zero zmian w `using` — kontrolery i strony widzą je tak samo
+- **Krok w stronę profesjonalnego stosu (warstwa 4: wspólne modele)** — rysunek warstw (prezentacja → API → serwisy → modele → dostęp do danych → baza)
+
+## 2. Nazwy C# po angielsku ✅ (baza zostaje po polsku)
+
+| Obecnie | Po angielsku |
+|---|---|
+| `Przedmiot` | `Item` (Name, Quantity, Price) |
+| `Batch.PrzedmiotId/Nazwa/Ilosc/Cena/Data` | `ItemId/Name/Quantity/Price/Date` |
+| `WydanieRequest` | `DispatchRequest` (NOWA, czeka na WZ) |
+| zmienne w stronach (`nazwa`, `ilosc`, `przedmioty`…) | `name`, `quantity`, `items`… |
+
+- **Zostaje po polsku:** kolumny w SQL (`Ilosc`, `Nazwa`…), `reader["Ilosc"]`, dziury `@`, trasy API (`/api/przedmioty`), kontrolery, teksty na ekranie, komentarze
+- **Linijka-tłumacz:** `Quantity = Convert.ToInt32(reader["Ilosc"])` — angielski (C#) | polski (baza)
+- JSON z API też mówi po angielsku (`ItemId`, `Name`…) — obie strony używają tej samej klasy, więc się rozumieją
+- **Cel nauki usera:** „jak teraz nie ogarnę angielskich nazw, później będzie problem" — im wcześniej, tym lepiej
+
+## 3. Pojęcia dnia
+
+- **`obj` = brudnopis kompilatora** (półprodukty, generowane automatycznie), `bin` = gotowy wynik (exe/dll). Nigdy nie ruszamy `obj`; w `.gitignore`
+- **Warning ≠ błąd:** CS8600/8602/8601 = ostrzeżenia o możliwym `null` (np. `GetConnectionString` może zwrócić puste). Aplikacja działa — „lód na jezdni", nie blokada
+- **Połączenie frontend ↔ backend (3 znaki):** ① adres w `Http.GetFromJsonAsync("http://localhost:5109/api/Batch")` = numer telefonu; ② `[Route("api/[controller]")]` + `[HttpGet]` = kto odbiera; ③ JSON = wspólny język, klasa = tłumacz
+- **Decyzja:** „nawet tworzenie projektu i przenoszenie plików robię ja (user) — asystent tylko mówi co/gdzie/po co" (user: „chciałem sam to zrobić" 🙄)
+
+## 4. Repozytoria git (WAŻNE — sytuacja)
+
+- `MagazynApi` i `MagazynWeb` = **osobne repozytoria**; `MagazynShared` stoi **poza nimi** (na poziomie NaukaCSharp)
+- Commit API/Web obejmie zmiany modeli + csproj, ALE **nie zawiera szuflady** → sklonowane repo samo się nie zbuduje (brak `MagazynShared` przy ścieżce `..\`)
+- Do nauki lokalnie OK; profesjonalnie: osobne repo dla MagazynShared / monorepo / NuGet — na później
+
+## Status (koniec dnia 21 wieczór)
+
+- ✅ `MagazynShared` działa (oba projekty build + start OK, przed zmianą nazw)
+- ✅ Nazwy C# po angielsku — przepisane 6 plików, SQL nietknięty; build i test strony NASTĘPNYM RAZEM
+- ⏭️ NASTĘPNE: build + test po rename; **WZ w API** — endpoint `POST /api/Batch/wydanie` (DispatchRequest gotowy w szufladzie) + przycisk na `/partie`; quiz (@-dziury, Execute) i „0-anuluj" dalej w kolejce
+
 
 
