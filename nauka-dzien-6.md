@@ -676,11 +676,22 @@ ORDER BY Id ASC
 - Commit API/Web obejmie zmiany modeli + csproj, ALE **nie zawiera szuflady** → sklonowane repo samo się nie zbuduje (brak `MagazynShared` przy ścieżce `..\`)
 - Do nauki lokalnie OK; profesjonalnie: osobne repo dla MagazynShared / monorepo / NuGet — na później
 
-## Status (koniec dnia 21 wieczór)
+## Dzień 21 cd. (noc, 2026-08-29) — WZ w API ✅
 
-- ✅ `MagazynShared` działa (oba projekty build + start OK, przed zmianą nazw)
-- ✅ Nazwy C# po angielsku — przepisane 6 plików, SQL nietknięty; build i test strony NASTĘPNYM RAZEM
-- ⏭️ NASTĘPNE: build + test po rename; **WZ w API** — endpoint `POST /api/Batch/wydanie` (DispatchRequest gotowy w szufladzie) + przycisk na `/partie`; quiz (@-dziury, Execute) i „0-anuluj" dalej w kolejce
+- Build + test po rename ✅ — oba projekty startują (tylko warnings, jak zwykle)
+- **Endpoint `POST /api/Batch/wydanie` napisany i PRZETESTOWANY ✅** (commit MagazynApi `434781b`)
+  - Wklejony blok do `BatchController.cs` (DispatchRequest: ItemId + Quantity); po wklejeniu brakowało klamry klasy `}` — błąd CS1513, dodana
+  - Ta sama piosenka co w konsoli: parking (SELECT do list) → sprawdź czy dość towaru (`total < quantity` → BadRequest) → pętla FIFO (UPDATE Ilosc=0/Status='Wydane' albo Ilosc-=) → UPDATE Przedmioty
+  - 3 różnice vs konsola: menu → ciało HTTP (request), komunikaty → `return Ok/BadRequest` (IActionResult), 2 połączenia → 1 (parking zamyka czytanie)
+  - **Test curl:** POST `{"itemId":5,"quantity":3}` → `Wydano towar`; baza: TEST-0825 1→0 Wydane ✅, TEST-0826 10→8 ✅, Wąż 13→10 — FIFO działa jak w konsoli
+  - Przez PowerShell: `Set-Content body.json` + `curl -d '@body.json'` (wzorzec z Dnia 14)
+- **Frontend krok OPISANY, kawałki w czacie (do wpisania jutro):** przycisk **Dispatch + pole ilości** w każdym wierszu /partie (wariant B), błąd „Not enough stock!" pod h1, metoda `Dispatch` + pomocnik `Refresh` (zastępuje powtórzony fetch w Dodaj/Usun), koszyk `Dictionary<int,int> dispatchQuantity` (nowy koncept: koszyk z kluczami — klucz = Id partii)
+- **Decyzja usera:** frontend (teksty widoczne) też po angielsku — **standard branżowy**; zostają po polsku: trasy (`/partie`), baza, stare nazwy metod (@code) — przeróbka nazw metod na angielski = osobny krok
+
+## Status (koniec dnia 21)
+
+- ✅ MagazynShared + nazwy EN (build/test OK) + **WZ w API przetestowany**
+- ⏭️ JUTRO: wpisać kawałki frontendu (Dispatch + EN teksty) z czatu → test na /partie → commit; w kolejce: quiz zaległy, „0-anuluj", ewentualnie EN nazwy metod w @code
 
 
 
