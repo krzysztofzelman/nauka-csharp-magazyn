@@ -719,5 +719,36 @@ ORDER BY Id ASC
 - ✅ F5 jednym klawiszem (oba projekty), layout: górny pasek, karty, spójny wygląd Home+Partie
 - ⏭️ NASTĘPNE: EN teksty (tabela zamiany przekazana w czacie) → Dispatch na /partie (Dictionary/Refresh/Dispatch) → test → commit; w kolejce: quiz zaległy, „0-anuluj", EN nazwy metod w @code
 
+## Dzień 22 cd. (2026-08-30, sesja 2) — przełącznik języka PL/EN ✅ + strażnicy pól
+
+### Przełącznik języka (PL | EN) — „tłumacz" Lang
+- **Lang.cs** (nowy, MagazynWeb): wspólna półka (`static`) z DWOMA słownikami `Dictionary<string,string>` (pl i en) — ten sam klucz (`"Add"`), inne teksty (`"Dodaj"` / `"Add"`)
+  - `T(key)` = pytanie do tłumacza: „jak się mówi Add w aktualnym języku?" — if Current=="en" → z en, inaczej z pl
+  - `Toggle()` = przełącz na drugi język; `Set(lang)` = ustaw konkretny (używają go przyciski PL/EN)
+  - `static` = półka wspólna: jedna dla całej strony, bez tworzenia obiektu; każda strona pyta TEGO SAMEGO tłumacza → przełączenie działa wszędzie
+- **LangSwitch.razor** (nowy): segmentowe przyciski **PL | EN** (btn-group, aktywny = btn-light) — wzorzec **„wyspa interaktywna"**: mały komponent z `@rendermode InteractiveServer` w statycznym layoutcie
+- **WAŻNA LEKCJA:** NIE wolno dać `@rendermode InteractiveServer` na CAŁY MainLayout — layout dostaje parametr `Body` (RenderFragment = kawałek strony = kod), a granica interaktywna nie umie go przesłać → `InvalidOperationException: Cannot pass the parameter 'Body'...`. Layout zostaje statyczny, interaktywny jest tylko mały komponent-wyspa
+- Przełączenie = `Lang.Set(lang)` + `Nav.NavigateTo(Nav.Uri, forceLoad: true)` (pełne odświeżenie)
+- Podmiana tekstów: każdy widoczny tekst → `@Lang.T("klucz")`; zostają po polsku: trasy (`/partie`), nazwy metod @code, brand, `zł`
+
+### Pułapka kreatora VS (2. raz) — Compile Remove
+- Nowy plik .cs przez kreatora/rename VS → VS dopisał do csproj `<Compile Remove="Lang.cs"/>` + `<None Include="Lang.cs"/>` → kompilator go nie widzi → lawina **CS0103 „Nazwa „Lang" nie istnieje w bieżącym kontekście"**
+- Fix: usunąć OBA bloki ItemGroup z csproj (projekty SDK-style kompilują *.cs same); potem VS pyta o „Przeładuj projekt"
+
+### Strażnicy pól (guard) — koniec pustych rekordów
+- Problem: formularz wysyłał wszystko, co jest w polach — nawet puste → mogły powstawać puste rekordy
+- Fix (na początku `Dodaj()`): Batches `if (batchNumber == "" || itemId == 0) { return; }`, Home `if (name == "") { return; }`
+- Koncept: `return` w środku metody = „wyjdź natychmiast, nie rób nic dalej"; dwa ify po kolei = normalne (strażnik pilnuje wejścia, drugi if to stara logika)
+
+### Baza — przegląd przez API (curl)
+- Partie: 4 rekordy czyste; Przedmioty: 9 rekordów czystych — pustych rekordów NIE MA
+- Poprawiona nazwa **„ Piła łańcuchowa"** (spacja na początku) → „Piła łańcuchowa" przez `PUT /api/przedmioty/4` (body.json przez write_file; w cmd.exe cudzysłowy PODWÓJNE: `-d "@body.json"` — pojedyncze cmd zostawia w argumencie)
+- Warnings CS8600/8601/8602 = dalej „lód na jezdni" (detal, nie błąd); usunięcie przez operator `??` = opcja na później
+
+## Status (koniec dnia 22, sesja 2)
+
+- ✅ Przełącznik PL/EN (Lang.cs + LangSwitch.razor), strażnicy pól, baza czysta, Piła poprawiona
+- ⏭️ NASTĘPNE: **Dispatch na /partie** (koszyk `Dictionary<int,int> dispatchQuantity` + `Refresh()` + `Dispatch(batch)` → POST /api/Batch/wydanie; kawałki opisane w czacie) → test; w kolejce: quiz zaległy, „0-anuluj", EN nazwy metod, opcjonalnie `??`
+
 
 
