@@ -693,5 +693,31 @@ ORDER BY Id ASC
 - ✅ MagazynShared + nazwy EN (build/test OK) + **WZ w API przetestowany**
 - ⏭️ JUTRO: wpisać kawałki frontendu (Dispatch + EN teksty) z czatu → test na /partie → commit; w kolejce: quiz zaległy, „0-anuluj", ewentualnie EN nazwy metod w @code
 
+## Dzień 22 (2026-08-30) — F5 JEDNYM KLAWISZEM + porządki frontendu (spójny wygląd)
+
+### F5 w Visual Studio — naprawione przez rozwiązanie (slnx)
+
+- Problem: F5 odpalał stronę jako exe (Production, port 5000, content root bin) — VS ignorował launchSettings
+- Fix: **`NaukaCSharp.slnx`** w głównym folderze (`dotnet new sln` + `dotnet sln add` MagazynApi/MagazynWeb/MagazynShared; MagazynShared dociągnięty sam przez ProjectReference)
+- VS: Otwórz → Projekt/Rozwiązanie → NaukaCSharp.slnx → prawy klik rozwiązanie → **Konfiguruj projekty startowe** → **Wiele projektów startowych** → MagazynApi=Start, MagazynWeb=Start, MagazynShared=Brak; Element debugowania = **http** (nie https!)
+- Usunięty profil https z MagazynWeb launchSettings (zostaje tylko http:5008) — inaczej otwierała się https://localhost:7052 (https strona → http API = mieszane treści, przeglądarka blokuje)
+- **F5/Ctrl+F5 = oba projekty naraz** (API 5109 + strona 5008). VS ubija debug, gdy zamknie się okno przeglądarki, które sam otworzył → przeniesienie karty do innego okna zabija API → **używać Ctrl+F5** (bez debugowania)
+- Kod -1 (0xffffffff) w konsoli = VS zatrzymał proces (Stop/restart), NIE awaria
+
+### Porządki frontendu (template → własna apka)
+
+- Usunięte: Counter.razor, Weather.razor, NavMenu.razor + .css, MainLayout.razor.css (zostaje tylko Error/NotFound — potrzebne)
+- **MainLayout.razor:** pasek z boku (sidebar) → **górny ciemny pasek** (navbar navbar-dark bg-dark) z brandem „Magazyn" + linki Home/Batches; link „About" (szablon) usunięty
+- **Home.razor:** formularz w **karcie** (card + row g-2 + col-md-*) — pola w jednym rzędzie; tabela w karcie (card-body p-0) + table-striped/hover/align-middle/mb-0; przyciski btn-outline-*-btn-sm; podsumowanie → **card-footer** w jednej linii
+- **Batches.razor:** to samo (6 pól col-md-2 = cały rząd + przycisk mt-2; tabela w karcie)
+- Usunięta belka **blazor-error-ui** z MainLayout (pokazywała się zawsze — w app.css brak reguły display:none; przy realnym błędzie strona po prostu nie pokaże danych)
+- Lekcja: **.razor = strona, .razor.cs = kod (code-behind)**; nowy plik w VS: Dodaj → Nowy element → **Komponent Razor** → nazwa BEZ rozszerzenia (VS doda .razor sam); „Klasa"/„Plik kodu Razor" = zły szablon → HTML w .cs → lawina błędów CS
+- Wzorzec UI: **Bootstrap = lakier (wklejany, nie do nauki)**, @code C# = silnik (to się uczymy)
+
+## Status (koniec dnia 22)
+
+- ✅ F5 jednym klawiszem (oba projekty), layout: górny pasek, karty, spójny wygląd Home+Partie
+- ⏭️ NASTĘPNE: EN teksty (tabela zamiany przekazana w czacie) → Dispatch na /partie (Dictionary/Refresh/Dispatch) → test → commit; w kolejce: quiz zaległy, „0-anuluj", EN nazwy metod w @code
+
 
 
