@@ -845,5 +845,22 @@ Po południu user: „nie wiem czy się dobrze czuję... nie pamiętam o co chod
 
 **Decyzja do podjęcia:** kopiujemy `magazyn.db` (dane testowe) czy czysta baza na start?
 
+---
+
+# DZIEŃ 23 cd. (2026-08-31, wieczór) — review commitów na GitHubie (Dispatch + Anuluj)
+
+## Review (asystent przez curl na github.com — web_fetch zablokowany, network OK)
+- Web `14f484b` (Dispatch): 4 uwagi → zaległości poniżej
+- Web `dabb778` (Anuluj): **czyste ✅** — nic do zarzucenia, drobiazg zrobiony jak trzeba
+
+## ZALEGŁOŚCI — „kiedyś zrobić" (kolejność ważności)
+1. **HttpClient przez DI (najważniejsze, osobna lekcja)** — `http://localhost:5109/api/Batch` wklejony na sztywno 4× (Dodaj, Usun, Refresh, Dispatch) → BaseAddress raz w Program.cs + ścieżki względne (`api/Batch`); `@inject HttpClient Http` zostaje bez zmian. **Nowy koncept (DI/kontener) → nie wciskać w inne zadanie**; dobry moment, bo miejsc jest mało (im więcej, tym większy refaktor)
+2. **Komunikat błędu (szybka poprawka)** — `response.IsSuccessStatusCode ? "" : "Not enough stock!"` łapie KAŻDY nie-2xx → gdy API padnie (500), user widzi kłamliwy komunikat. API zwraca 400 TYLKO przy „Za mało towaru" (BatchController.cs:123 `BadRequest`) → sprawdzać konkretnie 400, resztę → „Błąd serwera". Lekcja: **4xx = błąd żądania, 5xx = błąd serwera**
+3. **Blokada przycisku (mała, niska pilność)** — dwuklik Dispatch = podwójne wydanie zanim Refresh() nadpisze stan; `disabled` + flaga (np. `isDispatching`)
+4. **Walidacja inputa (najniższa pilność)** — ujemna ilość / więcej niż w partii; API i tak łapie (test 999 → czerwona ramka) → na teraz feedback z API wystarczy, ewentualnie `min="1"` (1 atrybut)
+
+## Uwaga do Anuluj (już w planie jutro)
+- Po Anuluj pola trzymają wartości edytowanej partii (tylko przycisk wraca do Dodaj) — to już na liście jutrzejszej: czyszczenie 6 pól w `Anuluj()`
+
 
 
