@@ -750,5 +750,49 @@ ORDER BY Id ASC
 - ✅ Przełącznik PL/EN (Lang.cs + LangSwitch.razor), strażnicy pól, baza czysta, Piła poprawiona
 - ⏭️ NASTĘPNE: **Dispatch na /partie** (koszyk `Dictionary<int,int> dispatchQuantity` + `Refresh()` + `Dispatch(batch)` → POST /api/Batch/wydanie; kawałki opisane w czacie) → test; w kolejce: quiz zaległy, „0-anuluj", EN nazwy metod, opcjonalnie `??`
 
+---
+
+# DZIEŃ 23 (2026-08-31) — Dispatch na /partie: WZ ze strony ✅
+
+## Cel
+Strona umiała **przyjmować** towar (dodawać partie). Dziś dostała **wydawanie** (WZ, FIFO) — to, co konsola robi w opcji 7. Klikasz **Wydaj**, towar schodzi z najstarszych partii, a jak chcesz wydać więcej niż jest → czerwona ramka „Not enough stock!". Ostatni brakujący element: strona = pełny WMS.
+
+## Nowy koncept: Dictionary<int,int> — „koszyk z kluczami"
+```csharp
+private Dictionary<int, int> dispatchQuantity = new Dictionary<int, int>();
+```
+- Zwykła zmienna = JEDNA wartość; **Dictionary = WIELE wartości, każda pod swoim kluczem**
+- Tu: **klucz = Id partii**, **wartość = ilość wpisana w tym wierszu** → każdy wiersz tabeli trzyma swoją ilość osobno (jedna zwykła zmienna by się gryzła)
+- Odczyt/zapis jak tablica, tylko po kluczu: `dispatchQuantity[batch.Id] = 0` (wpisz), `dispatchQuantity[batch.Id]` (odczytaj)
+
+## 4 kawałki frontendu (Batches.razor)
+1. **Linijka błędu** pod h1: `@if (dispatchError != "")` → `<div class="alert alert-danger">@dispatchError</div>` — „jeśli w pudełku jest coś napisane → pokaż w czerwonej ramce"
+2. **Blok Akcje w wierszu**: `@if (batch.Quantity > 0)` → `<input type="number" @bind="dispatchQuantity[batch.Id]" style="width:70px" />` + przycisk Dispatch — widoczne TYLKO dla partii z towarem
+3. **Pola**: `dispatchError` ("" start) + `dispatchQuantity` (koszyk)
+4. **Metody**:
+   - `Refresh()` = pobierz partie + **wyzeruj koszyk** (każdy batch → 0) — zastąpiła 3 powtórzone fetche (OnInitializedAsync, koniec Dodaj, Usun)
+   - `Dispatch(batch)` = POST `/api/Batch/wydanie` z `{ itemId, quantity }`; **`? :` (ternary)** = „jeśli OK → czyść błąd, jeśli nie → Not enough stock!"; potem `Refresh()`
+- API zwraca 200 „Wydano towar" lub 400 „Za mało towaru" — strona tylko pokazuje skutek
+
+## Wpadki dnia (3 nawigacyjne + 1 konsolowa)
+1. **Zły plik:** kawałki wpisane do **Home.razor** zamiast **Batches.razor** (karty podobne) → „nie ma zmian" w Batches, choć user zapisał. Diagnoza: daty modyfikacji plików (`dir` / Get-ChildItem LastWriteTime) → przeniesienie bloków **Ctrl+X / Ctrl+V** (zero przepisywania)
+2. **Zniknięte pole:** przy wklejaniu zginęła linia `private string status = "";` → lawina **CS0103 „status nie istnieje"** ×7 → dodać linię z powrotem. Wskazówka: „Nazwa X nie istnieje" przy świeżych zmianach = brakująca deklaracja pola
+3. **Blok w złym wierszu:** Dispatch wylądował w **nagłówku `<thead>`** zamiast komórki `<td>` wiersza. Kolumna Akcje = cały pionowy pasek: nagłówek `<th>` (napis „Actions", 1 szt.) vs komórki `<td>` w każdym wierszu (przyciski)
+4. **cmd.exe vs PowerShell przy curl:** w **cmd.exe** pojedynczy cudzysłów jest DOSŁOWNY → `-d '@body.json'` wysyła tekst `'@body.json'` (400 „invalid start of a value") → poprawnie: `-d @body.json` **bez cudzysłowów** (w PowerShellu odwrotnie — cudzysłów konieczny, patrz Dzień 14)
+
+## Test na żywo ✅
+- curl: wydanie 2 szt. Kosiarki → **„Wydano towar"** (KOSIARKA-0822 10→8) — backend działa
+- Strona: wpisz 999 → Wydaj → **czerwona ramka „Not enough stock!"** 🎉 (pełna ścieżka: przycisk → API → odpowiedź → komunikat)
+- Strona: wpisz 2 → Wydaj → ilość spadła ✅ (FIFO)
+- **Uwaga UX:** Dispatch **bez liczby w polu** = wydanie 0 sztuk = brak zmiany = „nic nie robi" (poprawne, ale mylące) — zawsze wpisać ilość przed kliknięciem
+
+## Tłumaczenie
+- Klucz **"Dispatch"** dodany do Lang.cs: pl „Wydaj", en "Dispatch"; przycisk → `@Lang.T("Dispatch")`
+
+## Status (koniec dnia 23)
+- ✅ **Dispatch na /partie KOMPLETNY** — strona przyjmuje i wydaje towar (WZ FIFO z komunikatem błędu)
+- ✅ Lang.cs + klucz Dispatch; testy na żywo (curl + przeglądarka) zaliczone
+- ⏭️ W kolejce: quiz zaległy, „0-anuluj", EN nazwy metod w @code, opcjonalnie `??` (warnings CS860x)
+
 
 
