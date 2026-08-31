@@ -825,5 +825,25 @@ Po południu user: „nie wiem czy się dobrze czuję... nie pamiętam o co chod
 - ✅ „0-anuluj": przycisk + metoda `Anuluj()` + klucze "Cancel" działają (przycisk wraca do Dodaj)
 - ⏭️ JUTRO (rytm 1-2-3): rozszerzyć `Anuluj()` o czyszczenie 6 pól → test → commit; kolejka: EN nazwy metod (Ctrl+R,R), `??`
 
+---
+
+# CEL NA PRZYSZŁOŚĆ: deployment MagazynWeb na VPS (dostęp z telefonu)
+
+**Motywacja (user):** „chciałbym sobie w każdej chwili móc wejść np. na telefonie i coś sprawdzić w aplikacji" — cel PRAKTYCZNY (podgląd stanu), nie publiczna demonstracja. User ma **VPS + domeny** (tam stoi Java/Spring magazyn-app) → pełny deployment pod subdomeną, Tailscale odpada.
+
+**Warunki wstępne (ZANIM deployment):**
+1. **Domknąć PZ** — dodanie partii na /partie NIE podbija stanu Przedmioty (INSERT jest, UPDATE Przedmioty brak — konsola PZ robi oba; UPDATE tylko w Wydanie/WZ) → magazyn na stronie tylko się kurczy → stan na telefonie kłamałby
+2. **Anuluj()** — czyszczenie 6 pól
+3. **basic auth w nginx** — apka NIE MA logowania → subdomena może wyciec → każdy mógłby kasować towar (świadomość bezpieczeństwa usera!)
+
+**Kroki (każdy = osobna sesja-zagadka):**
+1. `dotnet publish` self-contained (linux-x64) → skopiowanie na VPS (bez instalowania runtime)
+2. **systemd** — usługa wstaje po restarcie
+3. **nginx** — NOWY server block (np. `magazyn-cs.twojadomena.pl`), starych (Java app) NIE ruszamy
+4. **Let's Encrypt** — HTTPS
+5. basic auth (htpasswd) w nginx
+
+**Decyzja do podjęcia:** kopiujemy `magazyn.db` (dane testowe) czy czysta baza na start?
+
 
 
