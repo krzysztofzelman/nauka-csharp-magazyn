@@ -794,5 +794,36 @@ private Dictionary<int, int> dispatchQuantity = new Dictionary<int, int>();
 - ✅ Lang.cs + klucz Dispatch; testy na żywo (curl + przeglądarka) zaliczone
 - ⏭️ W kolejce: quiz zaległy, „0-anuluj", EN nazwy metod w @code, opcjonalnie `??` (warnings CS860x)
 
+---
+
+# DZIEŃ 23 cd. (2026-08-31, po południu) — rytm nauki na próbę + „0-anuluj"
+
+## Nowy rytm sesji (zaakceptowany przez usera — „ten schemat pracy jest dobry, jutro chcę tak")
+Po południu user: „nie wiem czy się dobrze czuję... nie pamiętam o co chodzi w kodzie po paru dniach jak przeskakuję z frontend na API to jest masakra". Omówienie: **przełączanie kontekstu męczy każdego**, kod czyta się PO WZORACH (piosenkach), nie po słowach.
+
+**Rytm:**
+1. **2 min** — notatki → sekcja „Status" (gdzie jesteśmy)
+2. **5–10 min zagadka-czytanie** — jedna, bez oceniania (ćwiczy CZYTANIE kodu)
+3. **Reszta — JEDNA przeróbka** znanej piosenki, ZERO nowych konceptów
+- Krótka dobra sesja > długa męczarnia; quiz-stres → zagadka 1-liniowa
+
+**Mapa projektu** — nowy plik `Magazyn\mapa-projektu.md` (3 warstwy konsola/API/strona, piosenki SQL/HTTP/Blazor, tabela błędów) + kopia na Pulpicie (`C:\Users\krzys\OneDrive\Pulpit\mapa-projektu.md`).
+
+**ZAGADKA #1 zaliczona ✅ („jaką piosenkę gra Dispatch?")** — user trafił 4/5: adres `/api/Batch/wydanie`, dane (itemId + ilość), komunikat błędu; poprawka: piosenka = **HTTP (POST)**, nie formularz — formularz to piosenka przycisku (@bind/@onclick), on tylko ODpala metodę, a `PostAsJsonAsync` wysyła.
+
+## Przeróbka: „0-anuluj" (przycisk Anuluj przy edycji) — W TRAKCIE
+- Problem: po Edytuj nie było odwrotu (tylko Zapisz albo odświeżenie)
+- Koncept: `editedId` = karteczka „który wiersz edytuję" (0 = „żaden"); `Anuluj()` = zerwij karteczkę → `@if (editedId == 0)` sam przełącza przycisk na Dodaj
+- 3 kawałki: (1) przycisk **w środku tego samego `else`** (obok Zapisz — else zostaje jedno!), (2) metoda `Anuluj()` z `editedId = 0` (w @code po Edytuj), (3) klucz `"Cancel"` w Lang.cs (pl „Anuluj" / en "Cancel")
+- Pytania usera: „else x2? można?" → nie, dokłada się przycisk W ŚRODKU else (półka = tryb edycji, dwa słoiki = Zapisz + Anuluj); „gdzie wpisać metodę?" → w @code, po Edytuj
+- Literówki usera: `class"` (brak `=`), `@oneclic` (brak k), `@Lang.T("cancel"` (mała litera + brak `)`) → poprawione przez asystenta (męczarnia, nie nauka — klucz Lang musi się zgadzać co do znaku!)
+- **User sam wykrył lukę: „to nic nie daje, można przeskoczyć w inny edytuj"** → racja: Anuluj bez czyszczenia pól = tylko zmiana przycisku + pułapka duplikatu (Dodaj po Anuluj wklei stare dane) → **JUTRO: rozszerzyć `Anuluj()` o czyszczenie 6 pól** (odwrotność Edytuj: `batchNumber = ""; itemId = 0; quantity = 0; price = 0; date = ""; status = "";` + `editedId = 0`)
+- **Obserwacja usera: „na dwóch różnych dostawach może być ten sam batch"** → BatchNumber = etykieta (może się powtarzać), **Id = tożsamość** (AUTOINCREMENT, nigdy się nie powtarza); kod kluczuje WYŁĄCZNIE po Id (`Edytuj(batch.Id)`, `Usun(batch.Id)`, `dispatchQuantity[batch.Id]`, `editedId`) — dlatego tabela ma kolumnę Id (parking z konsoli)
+
+## Status (koniec dnia 23, sesja 2)
+- ✅ Rytm nauki na próbę — zagadka #1 zaliczona, user potwierdził schemat; mapa projektu (commit `9f3143d`)
+- ✅ „0-anuluj": przycisk + metoda `Anuluj()` + klucze "Cancel" działają (przycisk wraca do Dodaj)
+- ⏭️ JUTRO (rytm 1-2-3): rozszerzyć `Anuluj()` o czyszczenie 6 pól → test → commit; kolejka: EN nazwy metod (Ctrl+R,R), `??`
+
 
 
