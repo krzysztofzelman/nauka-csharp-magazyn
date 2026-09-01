@@ -862,5 +862,25 @@ Po południu user: „nie wiem czy się dobrze czuję... nie pamiętam o co chod
 ## Uwaga do Anuluj (już w planie jutro)
 - Po Anuluj pola trzymają wartości edytowanej partii (tylko przycisk wraca do Dodaj) — to już na liście jutrzejszej: czyszczenie 6 pól w `Anuluj()`
 
+---
+
+# DZIEŃ 24 (2026-09-01) — „0-anuluj" dokończone: czyszczenie 6 pól ✅
+
+## Rytm 1-2-3 (kontynuacja)
+1. **Status** — czytanie notatek (koniec Dnia 23) → plan: czyszczenie pól w `Anuluj()`
+2. **Zagadka #2:** „która linia przełącza przycisk Dodaj ↔ Zapisz+Anuluj?" → `@if (editedId == 0)` (linia 36, HTML przy przyciskach). User wskazał **strażnika** w `Dodaj()` (`if (batchNumber == "" || itemId == 0)`) → rozróżnienie: strażnik pyta „czy pola puste?", linia 36 pyta „czy NIE edytuję?" — oba to `@if`, ale inne pytania; jedna karteczka `editedId`, dwaj pytający (linie 36 i 122)
+3. **Przeróbka:** `Anuluj()` czyści 6 pól (`batchNumber = ""; itemId = 0; quantity = 0; price = 0; date = ""; status = "";`) + `editedId = 0` — **odwrotność `Edytuj()`** (tam pola dostają wartości z partii, tu oddają)
+
+## Pytania usera po drodze
+- **„musimy najpierw napisać przycisk?"** → nie — przycisk już jest (linia 43, wczorajszy „0-anuluj"); `@onclick="Anuluj"` = dzwonek, metoda = to, co dzieje się po kliknięciu
+- **„myślałem, że to strona Home a nie partie"** → Home ma WŁASNE `editedId` (strona przedmiotów), ale przycisk Anuluj dodawaliśmy TYLKO na /partie; kod był na miejscu, user zobaczył `editedId` w Home i się zgubił
+
+## Test ✅
+- User: „jest ok sprawdziłem" — po Edytuj → Anuluj pola puste, przycisk wraca do Dodaj
+
+## Status (koniec dnia 24)
+- ✅ `Anuluj()` czyści formularz po wyjściu z edycji (6 pól + `editedId = 0`)
+- ⏭️ Kolejka: EN nazwy metod (Ctrl+R,R), `??` (warnings), zaległości review: HttpClient przez DI (osobna lekcja), komunikat błędu 400 vs 500, blokada przycisku Dispatch
+
 
 
