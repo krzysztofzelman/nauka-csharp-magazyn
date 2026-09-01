@@ -880,7 +880,8 @@ Po południu user: „nie wiem czy się dobrze czuję... nie pamiętam o co chod
 
 ## Status (koniec dnia 24)
 - ✅ `Anuluj()` czyści formularz po wyjściu z edycji (6 pól + `editedId = 0`)
-- ⏭️ Kolejka: EN nazwy metod (Ctrl+R,R), `??` (warnings), zaległości review: HttpClient przez DI (osobna lekcja), komunikat błędu 400 vs 500, blokada przycisku Dispatch
+- ✅ **400/500 fix scommitowany i wypchnięty (Web `725ae52`)**: Dispatch rozróżnia 400 („Za mało towaru") / inny błąd („Błąd serwera") / sukces; strażnik `dispatchQuantity <= 0` → „Podaj ilość" (sprawdzone na dysku)
+- ⏭️ Kolejka: EN nazwy metod (Ctrl+R,R), `??` (warnings), zaległości review: HttpClient przez DI (osobna lekcja), blokada przycisku Dispatch, `min="1"`
 
 
 
