@@ -883,5 +883,28 @@ Po południu user: „nie wiem czy się dobrze czuję... nie pamiętam o co chod
 - ✅ **400/500 fix scommitowany i wypchnięty (Web `725ae52`)**: Dispatch rozróżnia 400 („Za mało towaru") / inny błąd („Błąd serwera") / sukces; strażnik `dispatchQuantity <= 0` → „Podaj ilość" (sprawdzone na dysku)
 - ⏭️ Kolejka: EN nazwy metod (Ctrl+R,R), `??` (warnings), zaległości review: HttpClient przez DI (osobna lekcja), blokada przycisku Dispatch, `min="1"`
 
+# DZIEŃ 25 (2026-09-02) — EN nazwy metod w Batches.razor ✅
+
+## Rytm 1-2-3 (kontynuacja)
+1. **Status** — czytanie notatek (koniec Dnia 24) → plan: zagadka #3 + przeróbka EN nazw metod
+2. **Zagadka #3:** „która linia decyduje POST czy PUT — 36 czy 122?" → **122** (wewnątrz `Dodaj()`/`Add()`, po `else` = PUT). Dwa światy: **linia 36 (HTML) = przełącznik WIDOKU** (które przyciski pokazać), **linia 122 (metoda) = przełącznik AKCJI** (co wysłać do bazy)
+3. **Przeróbka:** EN nazwy metod — rename w VS
+
+## Zagadka #3 — co zaskoczyło (i kliknęło)
+- **Oba przyciski — „Dodaj" I „Zapisz" — wołają TĘ SAMĄ metodę** (linie 38 i 42: `@onclick="Dodaj"`). Kliknięcie NIE decyduje POST/PUT — to **karteczka `editedId`** decyduje w środku metody (linia 122): pusta → POST, numer → PUT
+- „historia 2 rozwaliła to co rozumiem" → rozbrojone: przycisk = wejście do metody, karteczka = decyzja; 36 i 122 to ta sama filozofia (pytanie o karteczkę), tylko jeden pyta „co narysować", drugi „co wysłać"
+- Wynik: częściowe przyjęcie („no powiedzmy chodź trochę ilość kodu mnie przytłacza") → zostawiona skorupka do zapamiętania: „karteczka pusta → POST, jest numer → PUT; reszta to wypełnianie pól"
+
+## Przeróbka — EN nazwy metod ✅
+- **`Ctrl+R, R` u usera NIE zadziałało** → działa **prawy przycisk myszy → „Zmień nazwę..."** (VS sam podmienia wszystkie użycia w HTML)
+- `Dodaj` → `Add`, `Usun` → `Delete`, `Edytuj` → `Edit`, `Anuluj` → `Cancel` (wpisane przez usera, sprawdzone grepem — zero polskich nazw zostało)
+- Test: user odpalił sam (Ctrl+F5) — „chyba ok odpaliłem działa"
+- Commit + push: Web `c07c4f8`
+
+## Status (koniec dnia 25)
+- ✅ Zagadka #3: linia 36 (widok) vs 122 (akcja) — częściowo przyjęte; zapamiętana skorupka POST/PUT po karteczce
+- ✅ Wszystkie metody Batches.razor po angielsku: `Add`, `Delete`, `Edit`, `Cancel` (Web `c07c4f8` push)
+- ⏭️ Kolejka: `??` (warnings), zaległości review: HttpClient przez DI (osobna lekcja), blokada przycisku Dispatch, `min="1"`
+
 
 
