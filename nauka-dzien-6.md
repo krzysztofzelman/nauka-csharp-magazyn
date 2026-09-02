@@ -906,5 +906,11 @@ Po południu user: „nie wiem czy się dobrze czuję... nie pamiętam o co chod
 - ✅ Wszystkie metody Batches.razor po angielsku: `Add`, `Delete`, `Edit`, `Cancel` (Web `c07c4f8` push)
 - ⏭️ Kolejka: `??` (warnings), zaległości review: HttpClient przez DI (osobna lekcja), blokada przycisku Dispatch, `min="1"`
 
+## Po sesji (dopisek) — blokada Dispatch próbowana i WYCOFANA
+- **Blokada dwukliku (`isDispatching`)** — user zrozumiał koncept (flaga = zmienna `true/false` w pamięci), wpisał 3/5 kawałków poprawnie, ale przy końcówce sesji nastąpiło przytłoczenie („nie piszę samodzielnie, nie wyobrażam sobie dopisać z głowy") → **zmiany wycofane (`git checkout`), plik czysty @ `c07c4f8`**; blokada wraca do kolejki
+- **Ważne odkrycie techniczne:** na localhost dwuklik NIE wydaje 2× (API odpowiada w ms — drugi klik trafia już po Refresh, pole wyzerowane → strażnik „Podaj ilość"). Podwójne wydanie realne dopiero przy wolnym API (VPS/internet)
+- **Ważne odkrycie o nauce:** metafora „drzwi" odrzucona — user chce **czystej mechaniki** (komórka pamięci, wartość, kolejność linii), nie analogii; i: **po zaliczonej przeróbce nie doklejać zadań z kolejki** — sesja kończy się na sukcesie
+- ⏭️ **NASTĘPNA SESJA — SPACER po Batches.razor:** czytanie od góry do dołu, nazywanie każdej linii po polsku; zero nowych funkcji, dopóki plik nie będzie znajomy (przy okazji: `List<Batch>?` → znak `?` = „może być nic" → łączy się z `??`)
+
 
 
