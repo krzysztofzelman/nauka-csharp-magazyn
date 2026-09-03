@@ -912,5 +912,42 @@ Po południu user: „nie wiem czy się dobrze czuję... nie pamiętam o co chod
 - **Ważne odkrycie o nauce:** metafora „drzwi" odrzucona — user chce **czystej mechaniki** (komórka pamięci, wartość, kolejność linii), nie analogii; i: **po zaliczonej przeróbce nie doklejać zadań z kolejki** — sesja kończy się na sukcesie
 - ⏭️ **NASTĘPNA SESJA — SPACER po Batches.razor:** czytanie od góry do dołu, nazywanie każdej linii po polsku; zero nowych funkcji, dopóki plik nie będzie znajomy (przy okazji: `List<Batch>?` → znak `?` = „może być nic" → łączy się z `??`)
 
+---
+
+# DZIEŃ 26 (2026-09-03) — SPACER po Batches.razor, część 1 (czytanie) ✅
+
+Sesja wg rytmu, ZERO nowych funkcji. Git Web czysty @ `c07c4f8` (po wczorajszym cofnięciu blokady). Przeszliśmy 3 piętra + wstęp do schowka.
+
+## Mapa pliku (została w notatkach na stałe)
+| Piętro | Co tam mieszka | Kotwica (Ctrl+F) |
+|---|---|---|
+| 0. Dach | @page, @rendermode, @inject | `@page "/partie"` |
+| 1. Tytuł + błąd | PageTitle, h1, ramka alert | `<PageTitle>` |
+| 2. Formularz | 6 pól @bind | `card mb-4` |
+| 3. Przyciski | Dodaj / Zapisz+Anuluj | `@if (editedId == 0)` |
+| 4. Tabela | lista partii + akcje | `<table` |
+| 5. Schowek | 9 zmiennych (98–108) | `@code {` (l.97) |
+| 6. Metody | OnInitializedAsync 110, Add 115, Delete 152, Edit 158, Cancel 174, Refresh 184, Dispatch 194 | `private async Task` |
+
+## Co kliknęło
+- **`@page "/partie"` = część adresu PO domenie** (user sama to wytłumaczyła lepiej niż asystent — „to może być na produkcji"). Część przed (localhost:5008) dokleja się z zewnątrz, więc strona działa też pod prawdziwym adresem. 5008 = port strony (MagazynWeb, launchSettings.json), **5109 = port backendu** (MagazynApi) — stąd w metodach pełne `http://localhost:5109/api/Batch`
+- **`@Lang.T("...")` = metoda T z KLASY Lang** (MagazynWeb\Lang.cs — nasz przełącznik PL/EN z Dnia 22): 2 słowniki (pl/en) + zmienna Current; T(key) szuka klucza w słowniku aktualnego języka
+- **`dispatchError` — wszystkie 7 miejsc w pliku**: 9+11 HTML czyta, **104 deklaracja**, **198/205/209/213 pisze tylko Dispatch()** (EnterQuantity / NotEnoughStock / ServerError / "" = sukces czyści)
+- **Nawigacja w VS:** Ctrl+F (wszystkie trafienia) / Ctrl+G (skok do linii) / prawy-klik → „Idź do definicji" (F12)
+- **Linia 194** `private async Task Dispatch(Batch batch)`: 5 słów „papieru" + 1 nazwa. Przycisk (l.84) i metoda (l.194) łączą się NAZWĄ — przycisk wywołuje metodę
+- **Klasa = nazwany blok, w którym mieszkają zmienne + metody** (przykład: Lang.cs otwarty na ekranie). static = użycie przez kropkę bez tworzenia egzemplarza (`Lang.T`). Batch = klasa tylko z danymi (7 pól); egzemplarz przez `new`
+- **Piętro 2 (formularz):** 6 pól = bind do zmiennej + podpowiedź przez Lang.T: batchNumber→Nr partii, itemId→Id artykułu, quantity→Ilość, price→Cena, date→Data
+- ⚠️ **Zauważony odstający:** pole `status` (l.33) ma „Status" wpisane NA SZTYWNO, bez `Lang.T` — kandydat na przeróbkę innego dnia (nie poprawialiśmy)
+
+## Feedback usera (ważne)
+- **Płytkie tłumaczenie z odroczeniem irytuje** („async Task = czeka na odpowiedź" → nie, chce wiedzieć OD PODSTAW) — ale pełny wykład async/Task też przytłoczył („za wysoki level"). Zasada: temat zaawansowany → uczciwie odłożyć i wrócić OD PODSTAW przy okazji kodu, nigdy skrótem, nigdy w środku spaceru
+- Przy czytaniu kodu **tłumaczyć znaczenie każdego obcego słowa** (Lang.T pokazuje polskie znaczenie identyfikatorów)
+- Koniec sesji: user zmęczona („dalej jestem zaspana") → rytm działa: krótka dobra sesja, zamknięta na sukcesie
+
+## Status (koniec dnia 26)
+- ✅ Spacer: piętra 0–2 + mapa schowka; plik przestaje być „masakrą"
+- ✅ Zero zmian w kodzie — git Web nietknięty @ `c07c4f8`
+- ⏭️ **Jutro: spacer cd.** — piętro 3 (przyciski editedId), 4 (tabela), reszta schowka/metod; przy okazji `?`/`??` na `List<Batch>?` (l.107). Kolejka czeka: przeróbka status→Lang.T, `??`, DI HttpClient, blokada Dispatch, `min="1"`
+
 
 
