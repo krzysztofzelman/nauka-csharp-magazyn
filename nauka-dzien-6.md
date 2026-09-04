@@ -949,5 +949,46 @@ Sesja wg rytmu, ZERO nowych funkcji. Git Web czysty @ `c07c4f8` (po wczorajszym 
 - ✅ Zero zmian w kodzie — git Web nietknięty @ `c07c4f8`
 - ⏭️ **Jutro: spacer cd.** — piętro 3 (przyciski editedId), 4 (tabela), reszta schowka/metod; przy okazji `?`/`??` na `List<Batch>?` (l.107). Kolejka czeka: przeróbka status→Lang.T, `??`, DI HttpClient, blokada Dispatch, `min="1"`
 
+---
+
+# DZIEŃ 27 (2026-09-04) — SPACER cz. 2: piętra 3 i 4 (czytanie) ⏸️
+
+Sesja wg rytmu, ZERO zmian w kodzie. Git Web czysty @ `c07c4f8` przez cały dzień.
+
+## Piętro 3 (przyciski, l.36–44) — zagadka trafiona ZA 1. RAZEM ✅
+- Pytanie „co decyduje, czy widać Add czy Save+Cancel?" → user od razu: 0 → Add, inaczej Save/Cancel
+- Poprawka słowna: **0 ≠ „nic się nie dzieje", tylko „nie edytuję żadnej partii"**
+- **Poprawka mapy schowka (grep `editedId = `):** deklaracja l.105 `= 0`; l.147 Add (po PUT, zeruje); **l.170 Edit `editedId = id;`**; **l.182 Cancel `editedId = 0;`** (mapa z Dnia 26: Edit 158 / Cancel 174 — przesunięta!)
+- Duplikat w Add(): `new Batch { 6 pól }` napisany 2× (newBatch → POST l.133 / editedBatch → PUT l.146) — **user SAMA to wyłapała** („te wartości występują wiele razy albo jest zamiana?") → to ręczna kopia: Add = 2 roboty, każda wysyła kompletnego Batcha
+- editedId dalej trudne do nazwania („jak bym miał określić co to jest, to nie wiem") → reframe **karteczka** (kotwica: to samo co `edytowanyId` w konsoli) + cel: Save → PUT pod `/api/Batch/{editedId}`
+
+## Cheat-sheet: jak rozpoznać słowa w kodzie
+| Słowo | Wzorzec | Przykład z pliku |
+|---|---|---|
+| zmienna | `[typ] [imię] = [wartość]` | `private int editedId = 0;` |
+| metoda | imię + **nawias ( )** | `Add()`, `Refresh()` |
+| klasa | z `new` albo jako typ | `new Batch`, `List<Batch>` |
+
+Kropka (`batch.BatchNumber`) = „wejdź do środka obiektu i wyciągnij pole".
+
+## Piętro 4 (tabela, l.46–94)
+- Cały blok = przełącznik: `batches == null` (jeszcze nic z API) → „Loading"; `else` → tabela
+- `@foreach (var batch in batches)` = „dla każdej partii z listy narysuj jeden wiersz"; `batch` = zmienna „aktualna partia", w każdym obiegu inna (konkret: 2 partie Id 7/8 → 2 obiegi → linia `@batch.Id` wypisze 7, potem 8)
+- Komórka Akcje od góry: `@if (Quantity > 0)` → pole ilości + **Wydaj** (tylko przy zapasie); potem ZAWSZE **Delete** i **Edit**; `Edit(batch.Id)` = każdy wiersz przekazuje SWÓJ numer → trafia na karteczkę editedId
+- **Kto pyta API:** otwarcie strony → OnInitializedAsync (l.110) → Refresh (l.184) → l.186 GET „daj wszystkie partie"; przyciski: POST l.133 (nowa), PUT l.146 (nadpisz {editedId}), DELETE l.154, wydanie POST l.201; po każdej akcji Refresh → tabela od nowa (strona NIE pamięta, zawsze pobiera)
+
+## Feedback usera (2 nowe zasady — zapisane)
+1. **„Od dupy strony tłumaczysz — w środku if, a dokładniej else"** → tłumaczyć TOP-DOWN: od początku konstrukcji (metoda → if → else, zewnętrze → środek), nigdy nie wchodzić w else/środek, zanim nie będzie omówione to, co nad nim
+2. **„Bardzo ogólnie tłumaczysz"** → zamiast „aktualna partia" używać KONKRETU na własnych danych (KOSIARKA Id 7, SEKATOR Id 8 — ile obiegów, co wypisze która linia)
+
+## Zmęczenie i zamknięcie
+- „kurwa… to trudne jest tak żeby szybko ogarnąć", „jak krew z nosa — to ile?" → reassurance: czytanie = najwolniejsza umiejętność u KAŻDEGO; postęp widać (wyłapany duplikat = czytanie działa); zostały 2 piętra (5. schowek @code, 6. metody 110–218) = 1–2 krótkie sesje, potem przeróbki
+- „cos tam ogarniam… pojedyncze słowa czasem łączą się w całość… to nie wyczyn" → reframe: słowa → wzorce → całość to DOKŁADNIE mechanizm czytania kodu u wszystkich, różnica to tylko częstotliwość trafień
+
+## Status (koniec dnia 27)
+- ✅ Piętra 0–4 przeczytane; zero zmian w kodzie — git Web czysty @ `c07c4f8`
+- ✅ 2 nowe zasady tłumaczenia zapisane (top-down, konkret)
+- ⏭️ **Jutro: spacer finał** — piętro 5 (schowek, zmienne l.98–108) + piętro 6 (metody OnInitializedAsync/Add/Delete/Edit/Cancel/Refresh/Dispatch) TOP-DOWN; koniec spaceru → przeróbki z kolejki (status→Lang.T kandydat, `??`, DI HttpClient, blokada Dispatch, `min="1"`)
+
 
 
