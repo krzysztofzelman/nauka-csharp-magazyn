@@ -990,5 +990,34 @@ Kropka (`batch.BatchNumber`) = „wejdź do środka obiektu i wyciągnij pole".
 - ✅ 2 nowe zasady tłumaczenia zapisane (top-down, konkret)
 - ⏭️ **Jutro: spacer finał** — piętro 5 (schowek, zmienne l.98–108) + piętro 6 (metody OnInitializedAsync/Add/Delete/Edit/Cancel/Refresh/Dispatch) TOP-DOWN; koniec spaceru → przeróbki z kolejki (status→Lang.T kandydat, `??`, DI HttpClient, blokada Dispatch, `min="1"`)
 
+---
+
+# DZIEŃ 28 (2026-09-05) — SPACER finał cz. 1: piętro 5 (schowek) + start piętra 6 ⏸️ PRZERWA
+
+Sesja wg rytmu, ZERO zmian w kodzie. Git Web czysty @ `c07c4f8` przez cały dzień. Słowniczek (70a4c83) istniał — na starcie odwołany („zapomnij, nie musisz nic otwierać" — user się pogubił przy 2 zadaniach naraz: otwórz słowniczek + zagadka → uprościć do JEDNEGO zadania).
+
+## Piętro 5 (schowek @code, zmienne) — ZAMKNIĘTE ✅
+- Szkielet: `@code` = zaplecze strony, 2 półki: GÓRA zmienne (dane), DÓŁ metody (roboty). Żadne imię w HTML nie istnieje, dopóki nie mieszka w schowku (Add w l.38 → metoda w l.114; `quantity` z `@bind` l.19 → deklaracja l.99)
+- **Word-spotting typów (10 zmiennych) — user odpowiedziała na 9/10 przez czat:** batchNumber napis ✅, itemId liczba ✅, quantity liczba ✅, **price ❌ (powiedziała „napis — troche dziwne" — chwilę wcześniej SAMA powiedziała dobrze „cena w liczbach z przecinkiem"; pewność znika bez kodu przed oczami → przy powtórkach dawać KOD, nie listę nazw)**, date/status napis ✅, dispatchError POMINIĘTA (string), editedId liczba ✅, **batches ❌ „liczba" (to List — kolekcja)**, **dispatchQuantity ❌ „liczba" (to Dictionary)**
+- Zasada-1-zdanie: **napis = cudzysłów (`string x = ""`), liczba = bez cudzysłowu** (`int`, `decimal`)
+- 2 pojemniki (kolekcje):
+  - `List<Batch>? batches` — lista wielu partii; `?` przy typie = „może być nic" (puste przed pierwszą odpowiedzią API → stąd `batches == null` → Loading); napełnia Refresh() (l.186 GET), czyta `@foreach`
+  - `Dictionary<int, int> dispatchQuantity` — pary „numer partii → ile wydać"; czemu nie zwykła zmienna: każdy wiersz tabeli ma swoje pole ilości (partia 7 → 3, partia 8 → 0); `= new Dictionary...()` = „zrób pusty słownik na start"; czyta/zapisuje Dispatch() i wiersz tabeli (`@bind="dispatchQuantity[batch.Id]"`); Refresh zeruje na 0
+
+## FEEDBACK — profesjonalne nazwy zamiast „pudełek" (zapisane)
+- **„List<Batch> co to jest funkcja? jak to się nazywa? box to nie jest raczej. chciałbym żebyś nazywał profesjonalne nazwy"** → typ ≠ funkcja; `List<T>` = **klasa generyczna** (parametr typu = `<Batch>`), rodzina = kolekcje; `Dictionary<TKey,TValue>` = 2 parametry typu. Metafory zostawić tylko dla prostych wartości; dla typów kolekcji OD RAZU profesjonalna nazwa + składnia (aktualizacja literal-mechanics-not-metaphors)
+
+## Piętro 6 (metody) — START, przerwane na strażniku Add()
+- **OnInitializedAsync (l.109) przeczytana w całości, linijka po linijce (na prośbę „całość metody"):** nazwa = moment (On=„gdy", Initialized=„zainicjalizowana", Async=„może czekać") → „gdy strona się otwiera"; `()` = nie przyjmuje danych; `async Task` = będzie czekać (za chwilę `await`); `override` = Blazor ma swoją wersję, my nadpisujemy własną; `protected` = kto może wołać (strona + Blazor); **NIKT jej nie woła — Blazor sam, przy otwarciu strony**; środek: `await Refresh()` = pobierz partie i czekaj. User: „rozumiem jakoś raczej w środku, no nie bym tego nie wyrecytował" → reassurance: czytanie ze zrozumieniem ≠ recytowanie (cel spaceru = plik przestaje być masakrą)
+- **Pułapka: `private async Task Add()` — „nie pamiętam tego"** → porównanie z OnInitializedAsync (tabelka): różni się TYLKO `private` zamiast `protected override` (metoda nasza, wołana przyciskiem) i nazwą; `async Task ()` identyczne → wzorzec 1-zdanie: **nasze metody wołane przyciskami = `private` + nazwa; metody wołane przez Blazor = `protected override` + nazwa**; oferta A (czytamy dalej) / B (1-min powtórka kto-woła) — bez odpowiedzi
+- **Szkielet Add() (l.114) TOP-DOWN podany:** ① sygnatura (1 przycisk = Add/Save, 2 roboty) ② strażnik ③ rozgałęzienie editedId (0 → POST / liczba → PUT) ④ Refresh. Gałąź POST rozłożona: `new Batch { 7 pól }` = nowy obiekt wg przepisu napełniany z pól formularza (`@bind` → zmienne), `PostAsJsonAsync` = wyślij jako nową
+- **KRYZYS na `||`:** „co to kurwa jest? tłumacz kawałek po kawałku, a nie tak losowo" → rozbiór lewo→prawo (if = pytanie / `==` = „czy równe?" 2 znaki vs `=` wpisywanie / `||` = „ALBO" / tabela 3 scenariuszy pusty-pusty / numer-bez-id / oba wypełnione) → **„to jest za bardzo pojebane" = PRZECIĄŻENIE na najtrudniejszej metodzie pliku**
+- Reakcja: reassurance (Add = najtrudniejsza metoda w pliku; lista osiągnięć dnia: Piętro 5 ✅, schowek ✅, OnInitializedAsync ✅) + oferta A (olej szczegóły Add, lecimy do łatwych Delete/Edit/Cancel) / B (zamykamy) → „nie wiem" → asystent zdecydował A-lekkie (Delete podany: 2 linijki, `DeleteAsync($".../api/Batch/{id}")` = usuń o numerze z przycisku + Refresh) → **user: „nie no dobra. przerwa. zrob commit notatki i przerwa"**
+
+## Status (koniec dnia 28, przerwa)
+- ✅ Piętro 5 zamknięte; Piętro 6: OnInitializedAsync + szkielet Add() + Delete; zero zmian w kodzie — git Web czysty @ `c07c4f8`
+- ✅ Feedback zapisany: profesjonalne nazwy kolekcji (nie „pudełka")
+- ⏭️ **Następna sesja:** dokończyć spacer — Edit (karteczka l.170), Cancel (l.182), Refresh (l.186), Dispatch (l.201, znana z tabelki kto-pyta-API); potem KONIEC spaceru → przeróbki z kolejki (status→Lang.T kandydat, `??`, DI HttpClient, blokada Dispatch, `min="1"`)
+
 
 
